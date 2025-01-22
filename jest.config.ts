@@ -10,6 +10,7 @@ const jestConfig: JestConfigWithTsJest = {
   testTimeout: 20000,
   modulePathIgnorePatterns: [".yalc"],
   collectCoverage: true,
+  collectCoverageFrom: ["./server/**/*.{js,jsx,ts,tsx}", "!**/node_modules/**", "!**/tests/**", "!**/__mocks__/**"],
   coverageDirectory: "./coverage",
 }
 
