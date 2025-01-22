@@ -25,8 +25,7 @@
     "release": "release-it",
     "playground:install": "$npm_execpath run playground:yalc-add && cd playground && $npm_execpath install",
     "playground:yalc-add": "cd playground && yalc add @fourlights/strapi-plugin-deep-populate",
-    "playground:yalc-add-link": "cd playground && yalc add --link @fourlights/strapi-plugin-deep-populate",
-    "prepublish": "$npm_execpath run build"
+    "playground:yalc-add-link": "cd playground && yalc add --link @fourlights/strapi-plugin-deep-populate"
   },
   "dependencies": {
     "dlv": "^1.1.3",
