@@ -83,7 +83,6 @@ const setupDocuments = async () => {
 
   page.output = await strapi.documents("api::page.page").create({
     data: page.input,
-    populate: "*",
   })
 
   return { page, primarySection, nestedSection }

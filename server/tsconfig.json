@@ -2,7 +2,7 @@
   "extends": "@strapi/typescript-utils/tsconfigs/server",
   "compilerOptions": {
     "rootDir": "../",
-    "noEmit": true,
+    "noEmit": true
   },
   "include": ["./src"]
 }

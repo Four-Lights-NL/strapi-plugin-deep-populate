@@ -37,10 +37,7 @@
     },
     "blocks": {
       "type": "dynamiczone",
-      "components": [
-        "cms.special",
-        "cms.cool-component"
-      ]
+      "components": ["cms.special", "cms.cool-component"]
     }
   }
 }
