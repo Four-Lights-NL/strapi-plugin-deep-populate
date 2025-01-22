@@ -22,8 +22,8 @@ jobs:
       - name: Prepare
         uses: ./.github/actions/prepare
 
-      - name: Biome CI with --fix
-        run: npm run ci --fix
+      - name: Biome CI
+        run: npm run ci
 
       - name: Config Git
         run: |
