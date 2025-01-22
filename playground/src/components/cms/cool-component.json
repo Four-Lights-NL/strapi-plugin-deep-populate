@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_cms_cool_components",
+  "info": {
+    "displayName": "cool-component",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "isCool": {
+      "type": "boolean",
+      "default": true
+    },
+    "title": {
+      "type": "string"
+    },
+    "text": {
+      "type": "richtext"
+    },
+    "targets": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cms.special"
+    }
+  }
+}

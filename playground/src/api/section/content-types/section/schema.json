@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "sections",
+  "info": {
+    "singularName": "section",
+    "pluralName": "sections",
+    "displayName": "Section",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "sections": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::section.section"
+    },
+    "coolitems": {
+      "type": "component",
+      "repeatable": true,
+      "component": "cms.cool-component"
+    },
+    "target": {
+      "type": "component",
+      "repeatable": false,
+      "component": "cms.special"
+    },
+    "blocks": {
+      "type": "dynamiczone",
+      "components": [
+        "cms.special",
+        "cms.cool-component"
+      ]
+    }
+  }
+}
