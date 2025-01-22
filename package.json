@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@release-it/conventional-changelog": "^10.0.0",
     "@strapi/sdk-plugin": "^5.3.0",
     "@strapi/strapi": "^5.8.0",
     "@strapi/typescript-utils": "^5.8.0",
