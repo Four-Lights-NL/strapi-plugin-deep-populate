@@ -41,6 +41,12 @@ jobs:
       - name: Prepare
         uses: ./.github/actions/prepare
 
+      - name: Build
+        run: npm run build
+
+      - name: Verify
+        run: npm run verify
+
       - name: Config Git
         run: |
           git config user.name "${GITHUB_ACTOR}"
