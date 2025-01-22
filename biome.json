@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["dist", "playground/dist"]
+    "ignore": ["dist", "coverage", "playground/dist", "playground/types/generated", "playground/db"]
   },
   "formatter": {
     "enabled": true,
