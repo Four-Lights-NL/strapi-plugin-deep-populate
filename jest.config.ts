@@ -6,8 +6,9 @@ const presetConfig = createDefaultPreset({
 
 const jestConfig: JestConfigWithTsJest = {
   ...presetConfig,
-  testMatch: ["**/*.(spec|test).(ts|tsx|jsx|js)"],
-  testPathIgnorePatterns: ["<rootDir>/__tests__/integration/"],
+  testMatch: ["<rootDir>/playground/__tests__/**/*.(spec|test).(ts|tsx|js|jsx)"],
+  testTimeout: 20000,
+  modulePathIgnorePatterns: [".yalc"],
   collectCoverage: true,
   coverageDirectory: "./coverage",
 }

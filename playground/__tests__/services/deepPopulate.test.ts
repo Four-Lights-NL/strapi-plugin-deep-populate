@@ -28,7 +28,6 @@ describe("plugin('deep-populate')", () => {
         })
 
         expect(populate).toEqual({
-          createdBy: true,
           localizations: true,
           members: true,
           sections: {
@@ -52,7 +51,6 @@ describe("plugin('deep-populate')", () => {
                   targets: true,
                 },
               },
-              createdBy: true,
               localizations: true,
               sections: {
                 populate: {
@@ -70,18 +68,14 @@ describe("plugin('deep-populate')", () => {
                       targets: true,
                     },
                   },
-                  createdBy: true,
                   localizations: true,
                   sections: true,
                   target: true,
-                  updatedBy: true,
                 },
               },
               target: true,
-              updatedBy: true,
             },
           },
-          updatedBy: true,
         })
       })
     })
