@@ -71,5 +71,8 @@
     "url": "https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues"
   },
   "homepage": "https://github.com/Four-Lights-NL/strapi-plugin-deep-populate#readme",
-  "author": "Four Lights <engineering@fourlights.nl>"
+  "author": "Four Lights <engineering@fourlights.nl>",
+  "publishConfig": {
+		"access": "public"
+	}
 }
