@@ -1,6 +1,6 @@
 {
-  "version": "0.0.0",
-  "keywords": [],
+  "version": "1.0.0-beta.0",
+  "keywords": ["strapi", "strapi-plugin", "populate", "strapi-v5"],
   "type": "commonjs",
   "exports": {
     "./package.json": "./package.json",
