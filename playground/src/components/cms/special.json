@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_cms_specials",
+  "info": {
+    "displayName": "special",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "isSpecial": {
+      "type": "boolean",
+      "default": true
+    },
+    "name": {
+      "type": "string"
+    },
+    "users": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}
