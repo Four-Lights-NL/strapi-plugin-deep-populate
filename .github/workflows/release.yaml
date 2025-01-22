@@ -28,10 +28,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare
         uses: ./.github/actions/prepare
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify
+        run: npm run verify
 
       - name: Config Git
         run: |

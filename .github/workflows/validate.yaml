@@ -22,6 +22,12 @@ jobs:
       - name: Prepare
         uses: ./.github/actions/prepare
 
+      - name: Build
+        run: npm run build
+
+      - name: Verify
+        run: npm run verify
+
       - name: Prepare playground
         run: npx yalc publish && npm run playground:install
 
@@ -30,20 +36,3 @@ jobs:
 
       - name: Biome CI
         run: npm run ci
-
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Prepare
-        uses: ./.github/actions/prepare
-
-      - name: Build
-        run: npm run build
-
-      - name: Verify
-        run: npm run verify
