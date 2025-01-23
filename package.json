@@ -50,8 +50,8 @@
     "yalc": "^1.0.0-pre.53"
   },
   "peerDependencies": {
-    "@strapi/sdk-plugin": "^5.3.0",
-    "@strapi/strapi": "^5.8.0"
+    "@strapi/sdk-plugin": "^5",
+    "@strapi/strapi": "^5"
   },
   "strapi": {
     "kind": "plugin",
@@ -72,6 +72,6 @@
   "homepage": "https://github.com/Four-Lights-NL/strapi-plugin-deep-populate#readme",
   "author": "Four Lights <engineering@fourlights.nl>",
   "publishConfig": {
-		"access": "public"
-	}
+    "access": "public"
+  }
 }
