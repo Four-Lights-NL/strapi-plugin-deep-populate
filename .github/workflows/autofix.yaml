@@ -2,8 +2,6 @@ name: Autofix
 
 on:
   pull_request:
-  push:
-    branches: ['main']
 
 permissions:
   contents: write
