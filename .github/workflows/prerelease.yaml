@@ -4,8 +4,7 @@ on:
     inputs:
       bump_type:
         description: 'Bump type'
-        required: true
-        default: 'patch'
+        required: false
         type: choice
         options:
           - patch
@@ -13,8 +12,7 @@ on:
           - major
       prerelease_type:
         description: 'Prerelease'
-        required: true
-        default: 'beta'
+        required: false
         type: choice
         options:
           - beta
@@ -53,7 +51,7 @@ jobs:
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 
       - name: Run release
-        run: npm run release -- --ci --increment=pre${{ github.event.inputs.bump_type }} --preReleaseId=${{ github.event.inputs.prerelease_type }} --npm.tag=${{ github.event.inputs.prerelease_type }} --github.preRelease --preReleaseBase=1
+        run: npm run release -- ${{ github.event.inputs.bump_type }} --ci --preRelease=${{ github.event.inputs.prerelease_type }}
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
