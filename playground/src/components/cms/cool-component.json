@@ -16,7 +16,12 @@
     "text": {
       "type": "richtext"
     },
-    "targets": {
+    "specialSingle": {
+      "type": "component",
+      "repeatable": false,
+      "component": "cms.special"
+    },
+    "specialRepeatable": {
       "type": "component",
       "repeatable": true,
       "component": "cms.special"

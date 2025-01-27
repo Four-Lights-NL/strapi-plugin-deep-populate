@@ -35,6 +35,11 @@
       "repeatable": false,
       "component": "cms.special"
     },
+    "singleCoolComponent": {
+      "type": "component",
+      "repeatable": false,
+      "component": "cms.cool-component"
+    },
     "blocks": {
       "type": "dynamiczone",
       "components": ["cms.special", "cms.cool-component"]
