@@ -1,5 +1,7 @@
 # @fourlights/strapi-plugin-deep-populate
 
+[![npm version](https://badge.fury.io/js/@fourlights%2Fstrapi-plugin-deep-populate.svg)](https://badge.fury.io/js/@fourlights%2Fstrapi-plugin-deep-populate)
+
 This Strapi v5 plugin provides a simple way of retrieving all nested objects in a single request.
 It does this by traversing the schema and comparing that to the actual retrieved document(s).
 Only relations that are actually set will be populated.
