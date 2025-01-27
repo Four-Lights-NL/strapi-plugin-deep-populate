@@ -1,17 +1,30 @@
 import type { Data } from "@strapi/strapi"
 
-const setupDocuments = async () => {
+export const setupDocuments = async () => {
   const nestedSection = {
     input: {
       name: "Nested Section",
       content: "This is a nested section",
-      coolitems: [{ title: "a hot potato", isCool: false, text: "Full of carbs" }],
+      singleCoolComponent: {
+        title: "single cool component",
+        isCool: true,
+        text: "A single but cool component",
+        specialRepeatable: [{ isSpecial: true, name: "target in singleCoolComponent" }],
+      },
+      coolitems: [
+        {
+          title: "a hot potato",
+          isCool: false,
+          text: "Full of carbs",
+          specialRepeatable: [{ isSpecial: false, name: "a nested non-special component, in a nested section" }],
+        },
+      ],
       blocks: [
         {
           __component: "cms.cool-component" as const,
           isCool: true,
           title: "nested sections are dynamic and cool",
-          targets: [
+          specialRepeatable: [
             {
               isSpecial: false,
               name: "a nested non-special component, in a nested section",
@@ -25,8 +38,22 @@ const setupDocuments = async () => {
   nestedSection.output = await strapi.documents("api::section.section").create({
     data: nestedSection.input,
     populate: {
-      coolitems: { populate: "*" },
-      blocks: { on: { "cms.cool-component": { populate: "*" } } },
+      target: true,
+      localizations: { populate: "*" },
+      singleCoolComponent: { populate: { specialRepeatable: { populate: { users: true } }, specialSingle: true } },
+      coolitems: { populate: { specialRepeatable: { populate: { users: true } }, specialSingle: true } },
+      sections: true,
+      blocks: {
+        on: {
+          "cms.cool-component": {
+            populate: {
+              specialSingle: { populate: { users: true } },
+              specialRepeatable: { populate: { users: true } },
+            },
+          },
+          "cms.special": { populate: "*" },
+        },
+      },
     },
   })
 
@@ -35,15 +62,20 @@ const setupDocuments = async () => {
       name: "Primary Section",
       content: "This is a primary section",
       coolitems: [
-        { title: "beer", isCool: true, text: "Cool and refreshing", targets: [{ isSpecial: false, name: "a test" }] },
-        { title: "water", isCool: true, text: "It's what plants crave", targets: [] },
+        {
+          title: "beer",
+          isCool: true,
+          text: "Cool and refreshing",
+          specialRepeatable: [{ isSpecial: false, name: "a test" }],
+        },
+        { title: "water", isCool: true, text: "It's what plants crave", specialRepeatable: [] },
       ],
       blocks: [
         {
           __component: "cms.cool-component" as const,
           isCool: true,
           title: "dynamic and cool",
-          targets: [
+          specialRepeatable: [
             {
               isSpecial: false,
               name: "a nested non-special component",
@@ -67,8 +99,21 @@ const setupDocuments = async () => {
   primarySection.output = await strapi.documents("api::section.section").create({
     data: primarySection.input,
     populate: {
-      coolitems: { populate: "*" },
-      blocks: { on: { "cms.cool-component": { populate: "*" }, "cms.special": { populate: "*" } } },
+      target: true,
+      singleCoolComponent: true,
+      localizations: { populate: "*" },
+      coolitems: { populate: { specialSingle: true, specialRepeatable: { populate: { users: true } } } },
+      blocks: {
+        on: {
+          "cms.cool-component": {
+            populate: {
+              specialSingle: { populate: { users: true } },
+              specialRepeatable: { populate: { users: true } },
+            },
+          },
+          "cms.special": { populate: "*" },
+        },
+      },
     },
   })
 
@@ -83,9 +128,8 @@ const setupDocuments = async () => {
 
   page.output = await strapi.documents("api::page.page").create({
     data: page.input,
+    populate: ["localizations", "members"],
   })
 
   return { page, primarySection, nestedSection }
 }
-
-export { setupDocuments }

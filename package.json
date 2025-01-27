@@ -23,7 +23,7 @@
     "test:integration": "jest --verbose --forceExit --detectOpenHandles",
     "ci": "biome ci server",
     "release": "release-it",
-    "playground:install": "$npm_execpath run playground:yalc-add && cd playground && $npm_execpath install",
+    "playground:install": "$npm_execpath run playground:yalc-add && cd playground && $npm_execpath install --loglevel error",
     "playground:yalc-add": "cd playground && yalc add @fourlights/strapi-plugin-deep-populate",
     "playground:yalc-add-link": "cd playground && yalc add --link @fourlights/strapi-plugin-deep-populate"
   },

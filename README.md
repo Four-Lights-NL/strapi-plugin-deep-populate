@@ -8,17 +8,25 @@ Only relations that are actually set will be populated.
 
 ```ts
 // Option 1: get the populate object and use where you see fit
-const populate = await strapi.plugin("deep-populate").service("populate").getPopulate({ documentId: 'xyz', contentType: 'api::page.page' })
+const populate = await strapi.plugin("deep-populate").service("populate").get({ documentId: 'xyz', contentType: 'api::page.page' })
 const document = strapi.documents('api::page.page').findOne({ documentId: 'xyz', populate })
 ```
 ```ts
-// Option 2: use the wrapped `findOne` method around documentService
+// Option 2: use the `findOne` method that wraps around documentService.findOne
 const { findOne } = strapi.plugin("deep-populate").service("populate").documents("api::page.page")
 const document = await findOne({ documentId: 'xyz' })
+```
 
-// You can also override the populate this way:
+```ts
+// Using the wrapped FindOne provides some handy features:
+
+// Allow you to override the populate this way:
 const documentWithCreatedBy = findOne({ documentId: 'xyz', populate: ['createdBy']})
 const documentWithoutSection = findOne({ documentId: 'xyz', populate: { section: false }})
+
+// And if you supply a `*` as populate, it will return a fully populated document (i.e. non-sparse)
+const sparseDocument = findOne({ documentId: 'xyz' }) // sparse, so only attributes are returned that have a value
+const fullDocument = findOne({ documentId: 'xyz', populate: '*' })   // fully populated, so all attributes are returned
 ```
 
 ### populateCreatorFields

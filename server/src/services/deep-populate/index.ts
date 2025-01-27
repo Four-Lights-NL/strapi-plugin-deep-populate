@@ -11,11 +11,26 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   mainUid,
   mainDocumentId,
   schema,
-  populate,
+  populate = {},
   lookup,
+  inDynamicZone = false,
+  omitEmpty,
 }: PopulateComponentProps<TContentType, TSchema>) {
-  const nestedPopulate = await _populate({ mainUid, mainDocumentId, schema, populate, lookup })
-  return { populate: nestedPopulate ? nestedPopulate : "*" }
+  const attrName = lookup.pop()
+  const componentLookup = lookup.length === 0 ? [attrName] : [...lookup, inDynamicZone ? "on" : "populate", attrName]
+
+  const componentPopulate = klona(populate)
+  dset(componentPopulate, componentLookup, { populate: "*" })
+
+  const nestedPopulate = await _populate({
+    mainUid,
+    mainDocumentId,
+    schema,
+    populate: componentPopulate,
+    lookup: componentLookup,
+    omitEmpty,
+  })
+  return isEmpty(nestedPopulate) ? true : { populate: nestedPopulate }
 }
 
 async function _populateDynamicZone<TContentType extends UID.ContentType>({
@@ -24,20 +39,17 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
   components,
   populate,
   lookup,
+  omitEmpty,
 }: PopulateDynamicZoneProps<TContentType>) {
-  const dzLookup = [...lookup, "on"]
-  const dzPopulate = klona(populate)
-  dset(dzPopulate, dzLookup, {})
-
   const resolvedPopulate = await components.reduce(async (prev, cur) => {
-    const componentPopulate = klona(dzPopulate)
-    delve(componentPopulate, dzLookup)[cur] = { populate: "*" }
     const curPopulate = await _populateComponent({
       mainUid,
       mainDocumentId,
       schema: cur,
-      populate: componentPopulate,
-      lookup: [...dzLookup, cur],
+      populate,
+      lookup: [...lookup, cur],
+      inDynamicZone: true,
+      omitEmpty,
     })
 
     const newPop = await prev
@@ -50,13 +62,14 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
 }
 
 function _populateMedia() {
-  return { populate: "*" }
+  return true
 }
 
 async function _populateRelation<TContentType extends UID.ContentType>({
   contentType,
   relation,
   resolvedRelations,
+  omitEmpty,
 }: PopulateRelationProps<TContentType>) {
   const isSingleRelation = !Array.isArray(relation)
   const relations = isSingleRelation ? [relation] : relation
@@ -70,6 +83,7 @@ async function _populateRelation<TContentType extends UID.ContentType>({
       mainDocumentId: relation.documentId,
       schema: contentType,
       resolvedRelations,
+      omitEmpty,
     })
 
     resolvedRelations.set(relation.documentId, relationPopulate)
@@ -82,7 +96,34 @@ async function _populateRelation<TContentType extends UID.ContentType>({
     Object.keys(relationPopulate).map((r) => dset(newPopulate, r, relationPopulate[r]))
   }
 
-  return { populate: newPopulate }
+  return isEmpty(newPopulate) ? true : { populate: newPopulate }
+}
+
+const _resolveValue = ({ document, lookup, attrName }) => {
+  // If the lookup contains an `on`, we're dealing with a dynamic zone
+  // and need to resolve the value using the `__component` field
+  if (lookup.find((l) => l === "on")) {
+    const attrLookup = lookup.filter((l) => l !== "on")
+    const parentAttr = attrLookup.pop()
+    const parentValue = (delve(document, attrLookup) ?? []).filter((b) => b.__component === parentAttr) ?? []
+    // It's possible that the component type is used more often in the dynamic zone, so we try to find one that actually has the requested attribute set
+    return (Array.isArray(parentValue) ? parentValue : [parentValue]).find((v) => hasValue(v[attrName]))?.[attrName]
+  }
+
+  // If the lookup contains a `populate`, we're dealing with a component or relation
+  if (lookup.find((l) => l === "populate")) {
+    const attrLookup = lookup.filter((l) => l !== "populate")
+    const parentValue = delve(document, attrLookup) ?? []
+    // It's possible that multiple components or relations are available, so we try to find one that actually has the requested attribute set
+    return (Array.isArray(parentValue) ? parentValue : [parentValue]).find((v) => hasValue(v[attrName]))?.[attrName]
+  }
+
+  // Otherwise, we'll just do a normal lookup
+  const parentValue = delve(document, lookup)
+  if (Array.isArray(parentValue)) {
+    return parentValue.map((v) => v[attrName])
+  }
+  return parentValue?.[attrName]
 }
 
 export default async function _populate<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
@@ -92,6 +133,7 @@ export default async function _populate<TContentType extends UID.ContentType, TS
   populate = {},
   lookup = [],
   resolvedRelations = new Map(),
+  omitEmpty = true,
 }: PopulateProps<TContentType, TSchema>) {
   const newPopulate = {}
 
@@ -119,10 +161,10 @@ export default async function _populate<TContentType extends UID.ContentType, TS
 
   // Construct actual populate
   for (const [attrName, attr] of relations) {
-    const attrLookup = [...lookup, attrName]
-    const value = delve(document, attrLookup)
+    const value = _resolveValue({ document, attrName, lookup })
+
     if (!hasValue(value)) {
-      newPopulate[attrName] = true
+      if (!omitEmpty) newPopulate[attrName] = true
       continue
     }
 
@@ -134,8 +176,8 @@ export default async function _populate<TContentType extends UID.ContentType, TS
         mainUid,
         mainDocumentId,
         components: relComponents,
-        populate: newPopulate,
         lookup: [...lookup, attrName],
+        omitEmpty,
       })
     }
 
@@ -146,6 +188,7 @@ export default async function _populate<TContentType extends UID.ContentType, TS
         contentType: relContentType,
         relation: value,
         resolvedRelations,
+        omitEmpty,
       })
     }
 
@@ -154,8 +197,8 @@ export default async function _populate<TContentType extends UID.ContentType, TS
         mainUid,
         mainDocumentId,
         schema: attr.component,
-        populate: newPopulate,
         lookup: [...lookup, attrName],
+        omitEmpty,
       })
     }
 
@@ -164,5 +207,5 @@ export default async function _populate<TContentType extends UID.ContentType, TS
     }
   }
 
-  return isEmpty(newPopulate) ? "*" : newPopulate
+  return newPopulate
 }

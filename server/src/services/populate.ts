@@ -2,9 +2,13 @@ import type { Core, UID } from "@strapi/strapi"
 import { dset } from "dset/merge"
 import populate from "./deep-populate"
 
-const deepPopulateService = ({ strapi }: { strapi: Core.Strapi }) => ({
-  async getPopulate({ contentType, documentId }: { contentType: UID.ContentType; documentId: string }) {
-    return await populate({ mainUid: contentType, mainDocumentId: documentId, schema: contentType })
+export default ({ strapi }: { strapi: Core.Strapi }) => ({
+  async get({
+    contentType,
+    documentId,
+    omitEmpty = false,
+  }: { contentType: UID.ContentType; documentId: string; omitEmpty?: boolean }) {
+    return await populate({ mainUid: contentType, mainDocumentId: documentId, schema: contentType, omitEmpty })
   },
   documents(contentType: UID.ContentType) {
     const documents = strapi.documents(contentType)
@@ -12,10 +16,14 @@ const deepPopulateService = ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const wrappedFindOne: typeof findOne = async (params) => {
       const { documentId, populate: originalPopulate } = params
-      const deepPopulate = await populate({ mainUid: contentType, mainDocumentId: documentId, schema: contentType })
+      const deepPopulate = await populate({
+        mainUid: contentType,
+        mainDocumentId: documentId,
+        schema: contentType,
+        omitEmpty: originalPopulate !== "*",
+      })
 
       // Try to merge the original populate with the deepPopulate
-      // NOTE: `populate: '*'` will be fully replaced because deepPopulate is by definition more specific
       if (originalPopulate && originalPopulate !== "*") {
         strapi.log.warn(
           `passed "populate" will be merged with deepPopulate, which could result in unexpected behavior.`,
@@ -31,5 +39,3 @@ const deepPopulateService = ({ strapi }: { strapi: Core.Strapi }) => ({
     return { ...wrapped, findOne: wrappedFindOne } as typeof documents
   },
 })
-
-export default deepPopulateService
