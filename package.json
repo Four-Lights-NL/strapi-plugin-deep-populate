@@ -1,6 +1,11 @@
 {
-  "version": "1.0.0-beta.0",
-  "keywords": ["strapi", "strapi-plugin", "populate", "strapi-v5"],
+  "version": "1.0.0-beta.1",
+  "keywords": [
+    "strapi",
+    "strapi-plugin",
+    "populate",
+    "strapi-v5"
+  ],
   "type": "commonjs",
   "exports": {
     "./package.json": "./package.json",
@@ -12,7 +17,9 @@
       "default": "./dist/server/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "strapi-plugin build",
     "watch": "strapi-plugin watch",
