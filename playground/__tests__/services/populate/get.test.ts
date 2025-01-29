@@ -1,4 +1,5 @@
 import type { Core, Modules } from "@strapi/strapi"
+import { uploadImage } from "../../helpers/files"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 
 describe("get", () => {
@@ -170,6 +171,24 @@ describe("get", () => {
             "cms.special": true,
           },
         },
+      })
+    })
+  })
+
+  describe("media", () => {
+    const contentType = "api::page.page"
+
+    test("should copy", async () => {
+      const image = await uploadImage(strapi)
+      const { documentId } = await strapi.documents(contentType).create({
+        data: {
+          image,
+        },
+      })
+
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
+      expect(populate).toStrictEqual({
+        image: true,
       })
     })
   })
