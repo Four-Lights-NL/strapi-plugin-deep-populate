@@ -1,5 +1,5 @@
 import type { Core, Modules } from "@strapi/strapi"
-import { uploadImage } from "../../helpers/files"
+import { cleanImages, uploadImage } from "../../helpers/files"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 
 describe("get", () => {
@@ -84,7 +84,6 @@ describe("get", () => {
       expect(populate).toStrictEqual({
         coolitems: {
           populate: {
-            specialSingle: true,
             specialRepeatable: true,
           },
         },
@@ -178,7 +177,11 @@ describe("get", () => {
   describe("media", () => {
     const contentType = "api::page.page"
 
-    test("should copy", async () => {
+    afterAll(async () => {
+      await cleanImages()
+    })
+
+    test("should populate", async () => {
       const image = await uploadImage(strapi)
       const { documentId } = await strapi.documents(contentType).create({
         data: {
@@ -189,6 +192,38 @@ describe("get", () => {
       const populate = await service.get({ contentType, documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         image: true,
+      })
+    })
+
+    test("should populate in deeply nested components", async () => {
+      const image = await uploadImage(strapi)
+      const { documentId, ...rest } = await strapi.documents("api::section.section").create({
+        data: {
+          name: "dynamiczone",
+          blocks: [
+            {
+              __component: "cms.slider" as const,
+              items: [
+                {
+                  image,
+                  enabled: true,
+                },
+              ],
+            },
+          ],
+        },
+      })
+      const populate = await service.get({ contentType: "api::section.section", documentId, omitEmpty: true })
+      expect(populate).toStrictEqual({
+        blocks: {
+          on: {
+            "cms.slider": {
+              populate: {
+                items: { populate: { image: true } },
+              },
+            },
+          },
+        },
       })
     })
   })

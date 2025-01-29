@@ -1,4 +1,4 @@
-import fs from "node:fs"
+import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import type { Core } from "@strapi/strapi"
@@ -15,7 +15,7 @@ const createFormidableFile = async (base64Image: string): Promise<File> => {
   const tmpFilePath = path.join(os.tmpdir(), `test-${Date.now()}.png`)
 
   // Write buffer to temp file
-  await fs.promises.writeFile(tmpFilePath, buffer)
+  await fs.writeFile(tmpFilePath, buffer)
 
   // Create Formidable File instance
   const file = new File({
@@ -50,6 +50,17 @@ export const uploadImage = async (strapi: Core.Strapi) => {
     .service("upload")
     .upload({ data: {}, files: [file] })
 
-  await fs.promises.unlink(file.filepath)
+  await fs.unlink(file.filepath)
   return uploadedFile
+}
+
+export const cleanImages = async () => {
+  const uploadPath = path.resolve(process.cwd(), "playground", "public", "uploads")
+
+  if (uploadPath) {
+    const uploads = await fs.readdir(uploadPath)
+    await Promise.all(
+      uploads.filter((f) => f.startsWith("test_")).map(async (file) => fs.unlink(path.join(uploadPath, file))),
+    )
+  }
 }
