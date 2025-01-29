@@ -15,7 +15,9 @@ export const getRelations = <TSchema extends UID.Schema>(model: Schema.Schema<TS
     ...contentTypes.getComponentAttributes(model).filter((attr) => !filteredAttributes.has(attr)),
   ])
 
-  return Object.entries(model.attributes).filter(([attrName]) => relationalAttributes.has(attrName))
+  return Object.entries(model.attributes).filter(
+    ([attrName, attr]) => relationalAttributes.has(attrName) || contentTypes.isMediaAttribute(attr),
+  )
 }
 
 export const isEmpty = (obj: object) => {
