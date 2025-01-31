@@ -102,26 +102,44 @@ async function _populateRelation<TContentType extends UID.ContentType>({
 const _resolveValue = ({ document, lookup, attrName }) => {
   // If the lookup contains an `on`, we're dealing with a dynamic zone
   // and need to resolve the value using the `__component` field
-  if (lookup.find((l) => l === "on")) {
-    const attrLookup = lookup.filter((l) => l !== "on")
-    const parentAttr = attrLookup.pop()
-    const parentValue = (delve(document, attrLookup) ?? []).filter((b) => b.__component === parentAttr) ?? []
+  const dynamicZoneIdx = Array.isArray(lookup) ? lookup.findIndex((l) => l === "on") : -1
+  const populateIdx = Array.isArray(lookup) ? lookup.findIndex((l) => l === "populate") : -1
+  if (dynamicZoneIdx !== -1) {
+    const dynamicZoneLookup = lookup.slice(0, dynamicZoneIdx)
+    const dynamicZoneComponent = lookup[dynamicZoneIdx + 1]
+
+    const componentLookup = lookup.slice(dynamicZoneIdx + 2)
+    if (componentLookup.find((l) => l === "on")) {
+      throw Error("Nested dynamic zones are not supported")
+    }
+
+    const dynamicZoneValue = delve(document, dynamicZoneLookup) ?? []
+    const componentValue = dynamicZoneValue
+      .filter((b) => b.__component === dynamicZoneComponent)
+      .map((c) => _resolveValue({ document: c, lookup: componentLookup, attrName }))
+
     // It's possible that the component type is used more often in the dynamic zone, so we try to find one that actually has the requested attribute set
-    return (Array.isArray(parentValue) ? parentValue : [parentValue]).find((v) => hasValue(v[attrName]))?.[attrName]
+    return (Array.isArray(componentValue) ? componentValue : [componentValue]).find((v) => hasValue(v))
   }
 
   // If the lookup contains a `populate`, we're dealing with a component or relation
-  if (lookup.find((l) => l === "populate")) {
-    const attrLookup = lookup.filter((l) => l !== "populate")
-    const parentValue = delve(document, attrLookup) ?? []
+  if (populateIdx !== -1) {
+    const parentLookup = lookup.slice(0, populateIdx)
+    const childLookup = lookup[populateIdx + 1]
+
+    const parentValue = delve(document, parentLookup)
+    const childValue = (Array.isArray(parentValue) ? parentValue : [parentValue]).map((v) =>
+      _resolveValue({ document: parentValue, lookup: childLookup, attrName }),
+    )
+
     // It's possible that multiple components or relations are available, so we try to find one that actually has the requested attribute set
-    return (Array.isArray(parentValue) ? parentValue : [parentValue]).find((v) => hasValue(v[attrName]))?.[attrName]
+    return childValue.find((v) => hasValue(v))
   }
 
   // Otherwise, we'll just do a normal lookup
   const parentValue = delve(document, lookup)
   if (Array.isArray(parentValue)) {
-    return parentValue.map((v) => v[attrName])
+    return parentValue.map((v) => v[attrName]).filter((v) => hasValue(v))
   }
   return parentValue?.[attrName]
 }

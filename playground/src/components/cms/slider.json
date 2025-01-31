@@ -1,0 +1,44 @@
+{
+  "collectionName": "components_cms_slider",
+  "info": {
+    "displayName": "Slider",
+    "description": ""
+  },
+  "options": {},
+  "attributes": {
+    "items": {
+      "displayName": "Items",
+      "type": "component",
+      "repeatable": true,
+      "component": "shared.slider-item"
+    },
+    "className": {
+      "type": "string"
+    },
+    "spacing": {
+      "type": "integer",
+      "default": 0
+    },
+    "height": {
+      "type": "integer",
+      "default": 67
+    },
+    "draggable": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoplay": {
+      "type": "boolean",
+      "default": true
+    },
+    "autoplaySpeed": {
+      "type": "integer",
+      "default": 3000,
+      "min": 400
+    },
+    "infinite": {
+      "type": "boolean",
+      "default": true
+    }
+  }
+}
