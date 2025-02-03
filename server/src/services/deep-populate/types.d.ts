@@ -1,6 +1,6 @@
 import type { Data, UID } from "@strapi/strapi"
 
-type PopulateType = Record<string, "*" | { populate: unknown } | { on: Record<`${string}.${string}`, unknown> }>
+type PopulateType = Record<string, "*" | { populate: unknown } | { on: Record<`${string}.${string}`, unknown> }> | true
 type PopulateBaseProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = {
   mainUid: TContentType
   mainDocumentId: string
