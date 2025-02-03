@@ -14,6 +14,7 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   populate = {},
   lookup,
   inDynamicZone = false,
+  resolvedRelations,
   omitEmpty,
 }: PopulateComponentProps<TContentType, TSchema>) {
   const attrName = lookup.pop()
@@ -28,6 +29,7 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
     schema,
     populate: componentPopulate,
     lookup: componentLookup,
+    resolvedRelations,
     omitEmpty,
   })
   return isEmpty(nestedPopulate) ? true : { populate: nestedPopulate }
@@ -39,6 +41,7 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
   components,
   populate,
   lookup,
+  resolvedRelations,
   omitEmpty,
 }: PopulateDynamicZoneProps<TContentType>) {
   const resolvedPopulate = await components.reduce(async (prev, cur) => {
@@ -49,6 +52,7 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
       populate,
       lookup: [...lookup, cur],
       inDynamicZone: true,
+      resolvedRelations,
       omitEmpty,
     })
 
@@ -195,12 +199,16 @@ export default async function _populate<TContentType extends UID.ContentType, TS
         mainDocumentId,
         components: relComponents,
         lookup: [...lookup, attrName],
+        resolvedRelations,
         omitEmpty,
       })
     }
 
     if (contentTypes.isRelationalAttribute(attr)) {
       const { target: relContentType } = attr as { target?: UID.ContentType }
+
+      // Make sure we won't revisit this documentId from nested children
+      resolvedRelations.set(mainDocumentId, true)
 
       newPopulate[attrName] = await _populateRelation({
         contentType: relContentType,
@@ -216,6 +224,7 @@ export default async function _populate<TContentType extends UID.ContentType, TS
         mainDocumentId,
         schema: attr.component,
         lookup: [...lookup, attrName],
+        resolvedRelations,
         omitEmpty,
       })
     }
