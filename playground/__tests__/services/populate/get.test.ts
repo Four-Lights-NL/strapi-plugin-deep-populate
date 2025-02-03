@@ -49,6 +49,27 @@ describe("get", () => {
         sections: { populate: { sections: true } },
       })
     })
+
+    test("should not traverse circular relations", async () => {
+      // create sections
+      const sectionA = await strapi.documents(contentType).create({ data: { name: "section-a", sections: [] } })
+      const sectionB = await strapi.documents(contentType).create({ data: { name: "section-b", sections: [] } })
+
+      // point sectionA to B and vice versa
+      const upa = await strapi
+        .documents(contentType)
+        // @ts-ignore Generated types are incorrect
+        .update({ documentId: sectionA.documentId, data: { sections: { connect: [sectionB.documentId] } } })
+      const upb = await strapi
+        .documents(contentType)
+        // @ts-ignore Generated types are incorrect
+        .update({ documentId: sectionB.documentId, data: { sections: { connect: [sectionA.documentId] } } })
+
+      const populate = await service.get({ contentType, documentId: sectionA.documentId, omitEmpty: true })
+      expect(populate).toStrictEqual({
+        sections: { populate: { sections: true } },
+      })
+    })
   })
 
   describe("components & dynamiczone", () => {
