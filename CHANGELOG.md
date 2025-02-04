@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2] - 2025-02-04
+
+### Fixed
+
+- Fix deep populate choking on circular references through components ([#17](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/17)) (Thomas Rijpstra)
+
 ## [1.1.1] - 2025-01-31
 
 ### Fixed
@@ -15,6 +21,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.1.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.1.2
 
 [1.1.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.1.1
 
