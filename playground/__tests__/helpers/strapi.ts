@@ -1,9 +1,6 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import { type Core, compileStrapi, createStrapi } from "@strapi/strapi"
-import type { Knex } from "knex"
-
-type DbConfigSqlite3 = Knex.Config & { connection: Knex.BetterSqlite3ConnectionConfig }
 
 let instance: Core.Strapi
 let tmpDbFile: string
@@ -42,8 +39,6 @@ export const setupStrapi = async () => {
 
 export const teardownStrapi = async () => {
   if (!instance) return
-
-  const dbSettings = strapi.config.get<DbConfigSqlite3>("database.connection")
 
   instance.server.httpServer.close()
 

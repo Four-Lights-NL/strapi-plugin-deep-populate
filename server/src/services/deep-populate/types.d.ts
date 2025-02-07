@@ -17,12 +17,12 @@ type PopulateBaseProps<TContentType extends UID.ContentType, TSchema extends UID
 export type PopulateComponentProps<
   TContentType extends UID.ContentType,
   TSchema extends UID.Schema,
-> = PopulateBaseProps<TContentType, TSchema> & { inDynamicZone?: boolean }
+> = PopulateBaseProps<TContentType, TSchema> & { inDynamicZone?: boolean; attrName: string }
 
 export type PopulateDynamicZoneProps<TContentType extends UID.ContentType> = Omit<
   PopulateBaseProps<TContentType, UID.Schema>,
   "schema"
-> & { components: `${string}.${string}`[] }
+> & { components: UID.Component[]; attrName: string }
 
 export type PopulateRelationProps<TContentType extends UID.ContentType> = PopulateInternalProps & {
   contentType: TContentType
