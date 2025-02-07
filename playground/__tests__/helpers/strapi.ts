@@ -6,6 +6,7 @@ import type { Knex } from "knex"
 type DbConfigSqlite3 = Knex.Config & { connection: Knex.BetterSqlite3ConnectionConfig }
 
 let instance: Core.Strapi
+let tmpDbFile: string
 
 const fileExists = async (filePath: string) => {
   try {
@@ -23,6 +24,8 @@ const resolve = (basePath: string, ...paths: string[]) => {
 
 export const setupStrapi = async () => {
   if (!instance) {
+    tmpDbFile = `./tmp/${crypto.randomUUID().toString().substring(10)}.db`
+    process.env.DATABASE_FILENAME = tmpDbFile
     const options = {
       appDir: resolve(process.cwd(), "playground"),
       distDir: resolve(process.cwd(), "playground", "dist"),
@@ -43,16 +46,12 @@ export const teardownStrapi = async () => {
   const dbSettings = strapi.config.get<DbConfigSqlite3>("database.connection")
 
   instance.server.httpServer.close()
-  await instance.destroy()
 
   if (instance.db?.connection) {
     await instance.db.connection.destroy()
 
-    if (dbSettings?.connection?.filename) {
-      const tmpDbFile = dbSettings.connection.filename
-      if (await fileExists(tmpDbFile)) {
-        await fs.unlink(tmpDbFile)
-      }
+    if (await fileExists(tmpDbFile)) {
+      await fs.unlink(tmpDbFile)
     }
   }
 }

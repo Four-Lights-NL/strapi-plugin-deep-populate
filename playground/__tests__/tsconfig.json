@@ -1,0 +1,7 @@
+{
+  "extends": "@strapi/typescript-utils/tsconfigs/server",
+  "compilerOptions": {
+    "types": ["node", "vitest/globals"],
+    "noEmit": true
+  }
+}
