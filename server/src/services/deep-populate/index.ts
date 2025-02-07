@@ -1,15 +1,16 @@
 import type { Data, UID } from "@strapi/strapi"
+import { contentTypes } from "@strapi/utils"
 import delve from "dlv"
 import { dset } from "dset/merge"
 import { klona } from "klona/json"
 
-import { contentTypes } from "@strapi/utils"
+import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 import { getRelations, hasValue, isEmpty } from "./utils"
 
 async function _populateComponent<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
-  mainUid,
-  mainDocumentId,
+  contentType,
+  documentId,
   schema,
   populate = {},
   lookup,
@@ -24,8 +25,8 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   dset(componentPopulate, componentLookup, { populate: "*" })
 
   const nestedPopulate = await _populate({
-    mainUid,
-    mainDocumentId,
+    contentType,
+    documentId,
     schema,
     populate: componentPopulate,
     lookup: componentLookup,
@@ -36,8 +37,8 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
 }
 
 async function _populateDynamicZone<TContentType extends UID.ContentType>({
-  mainUid,
-  mainDocumentId,
+  contentType,
+  documentId,
   components,
   lookup,
   attrName,
@@ -49,8 +50,8 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
   const resolvedPopulate = {}
   for (const component of components) {
     const componentPopulate = await _populateComponent({
-      mainUid,
-      mainDocumentId,
+      contentType,
+      documentId,
       schema: component,
       lookup: dynamicZoneLookup,
       attrName: component,
@@ -85,8 +86,8 @@ async function _populateRelation<TContentType extends UID.ContentType>({
     resolvedRelations.set(relation.documentId, {})
 
     const relationPopulate = await _populate({
-      mainUid: contentType,
-      mainDocumentId: relation.documentId,
+      contentType,
+      documentId: relation.documentId,
       schema: contentType,
       resolvedRelations,
       omitEmpty,
@@ -150,19 +151,22 @@ const _resolveValue = ({ document, lookup, attrName }) => {
   return parentValue?.[attrName]
 }
 
-export default async function _populate<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
-  mainUid,
-  mainDocumentId,
+async function _populate<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
+  contentType,
+  documentId,
   schema,
   populate = {},
   lookup = [],
-  resolvedRelations = new Map(),
-  omitEmpty = true,
+  resolvedRelations,
+  omitEmpty,
 }: PopulateProps<TContentType, TSchema>) {
   const newPopulate = {}
 
   let relations = getRelations(strapi.getModel(schema))
   let currentPopulate = klona(populate)
+
+  // Make sure we won't revisit this documentId from nested children
+  resolvedRelations.set(documentId, true)
 
   // Make sure we retrieve all related objects one level below this on
   for (const [attrName] of relations) {
@@ -177,8 +181,8 @@ export default async function _populate<TContentType extends UID.ContentType, TS
   }
 
   // Get the document for this level
-  let document = (await strapi.documents(mainUid).findOne({
-    documentId: mainDocumentId,
+  let document = (await strapi.documents(contentType).findOne({
+    documentId,
     populate: currentPopulate ? currentPopulate : "*",
   })) as Data.Entity<TContentType>
 
@@ -209,8 +213,8 @@ export default async function _populate<TContentType extends UID.ContentType, TS
       )
 
       newPopulate[attrName] = await _populateDynamicZone({
-        mainUid,
-        mainDocumentId,
+        contentType,
+        documentId,
         components: relComponents,
         lookup,
         attrName,
@@ -220,9 +224,6 @@ export default async function _populate<TContentType extends UID.ContentType, TS
     }
 
     if (contentTypes.isRelationalAttribute(attr)) {
-      // Make sure we won't revisit this documentId from nested children
-      resolvedRelations.set(mainDocumentId, true)
-
       newPopulate[attrName] = await _populateRelation({
         contentType: attr.target as UID.ContentType,
         relation: value,
@@ -233,8 +234,8 @@ export default async function _populate<TContentType extends UID.ContentType, TS
 
     if (contentTypes.isComponentAttribute(attr) && !contentTypes.isDynamicZoneAttribute(attr)) {
       newPopulate[attrName] = await _populateComponent({
-        mainUid,
-        mainDocumentId,
+        contentType,
+        documentId,
         schema: attr.component as UID.Component,
         lookup,
         attrName,
@@ -249,4 +250,11 @@ export default async function _populate<TContentType extends UID.ContentType, TS
   }
 
   return newPopulate
+}
+
+export default async function populate(params: PopulateParams) {
+  const resolvedRelations = new Map()
+  const populated = await _populate({ ...params, schema: params.contentType, resolvedRelations })
+  resolvedRelations.clear()
+  return populated
 }

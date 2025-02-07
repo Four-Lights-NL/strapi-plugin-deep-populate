@@ -2,13 +2,22 @@ import { klona } from "klona/json"
 
 export default async ({ strapi }) => {
   strapi.documents.use(async (context, next) => {
-    const { augmentPopulateStar } = strapi.config.get("plugin::deep-populate")
-    if (!augmentPopulateStar) return await next() // nothing to do
+    const { cachePopulate, augmentPopulateStar } = strapi.config.get("plugin::deep-populate")
+    if (!cachePopulate && !augmentPopulateStar) return await next() // nothing to do
+    if (context.uid === "plugin::deep-populate.cache") return await next() // don't cache the cache
 
     const { populate } = context.params
     const returnDeeplyPopulated = augmentPopulateStar && populate === "*"
 
     const { get: getDeepPopulate } = strapi.plugin("deep-populate").service("populate")
+
+    if (cachePopulate && ["delete"].includes(context.action)) {
+      const { documentId, locale, status } = context.params
+      await strapi
+        .plugin("deep-populate")
+        .service("cache")
+        .clear({ contentType: context.uid, documentId, locale, status })
+    }
 
     const fields = klona(context.fields)
 
@@ -20,11 +29,22 @@ export default async ({ strapi }) => {
 
     if (["create", "update"].includes(context.action)) {
       const { documentId, status, locale } = result
-      if (returnDeeplyPopulated) {
+      if (context.action === "update" && cachePopulate) {
+        // FIXME: Upsert the cache instead
+        // TODO: Update dependent caches as well
+        const { documentId, locale, status } = context.params
+        await strapi
+          .plugin("deep-populate")
+          .service("cache")
+          .clear({ contentType: context.uid, documentId, locale, status })
+      }
+      if (cachePopulate || returnDeeplyPopulated) {
+        // if cache is enabled, getting the deep populate will fill the cache
         const deepPopulate = await getDeepPopulate({ contentType: context.uid, documentId, status, locale })
-        return await strapi
-          .documents(context.uid)
-          .findOne({ documentId, fields, status, locale, populate: deepPopulate })
+        if (returnDeeplyPopulated)
+          return await strapi
+            .documents(context.uid)
+            .findOne({ documentId, fields, status, locale, populate: deepPopulate })
       }
     }
 
