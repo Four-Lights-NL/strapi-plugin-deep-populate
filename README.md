@@ -2,19 +2,29 @@
 
 [![npm version](https://badge.fury.io/js/@fourlights%2Fstrapi-plugin-deep-populate.svg)](https://badge.fury.io/js/@fourlights%2Fstrapi-plugin-deep-populate)
 
+TL/DR: with this plugin `populate: '*'` will return all nested properties.
+
 This Strapi v5 plugin provides a simple way of retrieving all nested objects in a single request.
 It does this by traversing the schema and comparing that to the actual retrieved document(s).
 Only relations that are actually set will be populated.
 
 ## Usage
 
+Relevant setting: `deep-populate.augmentPopulateStar` = `true` (default)
 ```ts
-// Option 1: get the populate object and use where you see fit
+// Option 1: handle `populate: '*'` directly
+// e.g. page -> section -> blocks -> column -> component
+const document = await strapi.documents("api.page.page").findOne({ document: 'xyz', populate: '*' })
+// this will return all nested objects.
+```
+
+```ts
+// Option 2: get the populate object and use where you see fit
 const populate = await strapi.plugin("deep-populate").service("populate").get({ documentId: 'xyz', contentType: 'api::page.page' })
 const document = strapi.documents('api::page.page').findOne({ documentId: 'xyz', populate })
 ```
 ```ts
-// Option 2: use the `findOne` method that wraps around documentService.findOne
+// Option 3: use the `findOne` method that wraps around documentService.findOne
 const { findOne } = strapi.plugin("deep-populate").service("populate").documents("api::page.page")
 const document = await findOne({ documentId: 'xyz' })
 ```
