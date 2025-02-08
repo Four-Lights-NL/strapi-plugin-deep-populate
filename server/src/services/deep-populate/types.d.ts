@@ -7,8 +7,8 @@ type PopulateInternalProps = {
   omitEmpty?: boolean
 }
 type PopulateBaseProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = PopulateInternalProps & {
-  mainUid: TContentType
-  mainDocumentId: string
+  contentType: TContentType
+  documentId: string
   schema: TSchema
   populate?: Any<TContentType>
   lookup?: string[]
