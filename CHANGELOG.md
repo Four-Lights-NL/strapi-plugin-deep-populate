@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0] - 2025-02-09
+
+### Added
+
+- Out-of-the-box support for `populate: *` ([#21](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/21)) (Thomas Rijpstra)
+- Full support for `DocumentService`'s `locale` and `status` fields ([#26](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/26)) (Thomas Rijpstra)
+- Intelligent caching mechanism for deep populate ([#22](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/22), [#25](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/25)) (Thomas Rijpstra)
+
+### Removed
+
+- Wrapped document service methods 
+
 ## [1.1.2] - 2025-02-04
 
 ### Fixed
@@ -21,6 +33,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.2.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.0
 
 [1.1.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.1.2
 
