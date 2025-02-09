@@ -11,6 +11,9 @@ export default defineConfig({
       threads: {
         singleThread: true,
       },
+      vmThreads: {
+        singleThread: true,
+      },
     },
     // Cleanup nasty node warnings
     onConsoleLog(log, type) {
