@@ -6,6 +6,12 @@ export default defineConfig({
     environment: "node",
     globals: true,
     testTimeout: 20000,
+    isolate: false,
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
     // Cleanup nasty node warnings
     onConsoleLog(log, type) {
       return !(type === "stdout" && log.includes("warning"))
