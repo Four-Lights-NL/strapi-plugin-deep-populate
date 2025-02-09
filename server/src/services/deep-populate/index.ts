@@ -9,15 +9,11 @@ import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, P
 import { getRelations, hasValue, isEmpty } from "./utils"
 
 async function _populateComponent<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
-  contentType,
-  documentId,
-  schema,
   populate = {},
   lookup,
   attrName,
   inDynamicZone = false,
-  resolvedRelations,
-  omitEmpty,
+  ...params
 }: PopulateComponentProps<TContentType, TSchema>) {
   const componentLookup = lookup.length === 0 ? [attrName] : [...lookup, inDynamicZone ? "on" : "populate", attrName]
 
@@ -25,39 +21,29 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   dset(componentPopulate, componentLookup, { populate: "*" })
 
   const nestedPopulate = await _populate({
-    contentType,
-    documentId,
-    schema,
     populate: componentPopulate,
     lookup: componentLookup,
-    resolvedRelations,
-    omitEmpty,
+    ...params,
   })
   return isEmpty(nestedPopulate) ? true : { populate: nestedPopulate }
 }
 
 async function _populateDynamicZone<TContentType extends UID.ContentType>({
-  contentType,
-  documentId,
   components,
   lookup,
   attrName,
-  resolvedRelations,
-  omitEmpty,
+  ...params
 }: PopulateDynamicZoneProps<TContentType>) {
   const dynamicZoneLookup = [...lookup, attrName]
 
   const resolvedPopulate = {}
   for (const component of components) {
     const componentPopulate = await _populateComponent({
-      contentType,
-      documentId,
       schema: component,
       lookup: dynamicZoneLookup,
       attrName: component,
       inDynamicZone: true,
-      resolvedRelations,
-      omitEmpty,
+      ...params,
     })
 
     dset(resolvedPopulate, [component], componentPopulate) // NOTE: We pass cur as `array` so that the dot notation is used as the key
@@ -76,6 +62,8 @@ async function _populateRelation<TContentType extends UID.ContentType>({
   relation,
   resolvedRelations,
   omitEmpty,
+  locale,
+  status,
 }: PopulateRelationProps<TContentType>) {
   const isSingleRelation = !Array.isArray(relation)
   const relations = isSingleRelation ? [relation] : relation
@@ -91,6 +79,8 @@ async function _populateRelation<TContentType extends UID.ContentType>({
       schema: contentType,
       resolvedRelations,
       omitEmpty,
+      locale,
+      status,
     })
 
     resolvedRelations.set(relation.documentId, relationPopulate)
@@ -153,12 +143,12 @@ const _resolveValue = ({ document, lookup, attrName }) => {
 
 async function _populate<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
   contentType,
-  documentId,
   schema,
   populate = {},
   lookup = [],
   resolvedRelations,
   omitEmpty,
+  ...params
 }: PopulateProps<TContentType, TSchema>) {
   const newPopulate = {}
 
@@ -166,7 +156,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   let currentPopulate = klona(populate)
 
   // Make sure we won't revisit this documentId from nested children
-  resolvedRelations.set(documentId, true)
+  resolvedRelations.set(params.documentId, true)
 
   // Make sure we retrieve all related objects one level below this on
   for (const [attrName] of relations) {
@@ -182,7 +172,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
   // Get the document for this level
   let document = (await strapi.documents(contentType).findOne({
-    documentId,
+    ...params,
     populate: currentPopulate ? currentPopulate : "*",
   })) as Data.Entity<TContentType>
 
@@ -214,12 +204,12 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
       newPopulate[attrName] = await _populateDynamicZone({
         contentType,
-        documentId,
         components: relComponents,
         lookup,
         attrName,
         resolvedRelations,
         omitEmpty,
+        ...params,
       })
     }
 
@@ -229,18 +219,20 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         relation: value,
         resolvedRelations,
         omitEmpty,
+        locale: params.locale,
+        status: params.status,
       })
     }
 
     if (contentTypes.isComponentAttribute(attr) && !contentTypes.isDynamicZoneAttribute(attr)) {
       newPopulate[attrName] = await _populateComponent({
         contentType,
-        documentId,
         schema: attr.component as UID.Component,
         lookup,
         attrName,
         resolvedRelations,
         omitEmpty,
+        ...params,
       })
     }
 

@@ -1,4 +1,4 @@
-import type { Data, UID } from "@strapi/strapi"
+import type { Data, Modules, UID } from "@strapi/strapi"
 
 type PopulateType = Record<string, "*" | { populate: unknown } | { on: Record<`${string}.${string}`, unknown> }> | true
 
@@ -6,13 +6,14 @@ type PopulateInternalProps = {
   resolvedRelations: Map<string, PopulateType>
   omitEmpty?: boolean
 }
-type PopulateBaseProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = PopulateInternalProps & {
-  contentType: TContentType
-  documentId: string
-  schema: TSchema
-  populate?: Any<TContentType>
-  lookup?: string[]
-}
+type PopulateBaseProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = PopulateInternalProps &
+  Modules.Documents.Params.Pick<TContentType, "locale:string" | "status"> & {
+    contentType: TContentType
+    documentId: string
+    schema: TSchema
+    populate?: Any<TContentType>
+    lookup?: string[]
+  }
 
 export type PopulateComponentProps<
   TContentType extends UID.ContentType,
@@ -24,10 +25,11 @@ export type PopulateDynamicZoneProps<TContentType extends UID.ContentType> = Omi
   "schema"
 > & { components: UID.Component[]; attrName: string }
 
-export type PopulateRelationProps<TContentType extends UID.ContentType> = PopulateInternalProps & {
-  contentType: TContentType
-  relation: Data.Entity<TContentType> | Data.Entity<TContentType>[]
-}
+export type PopulateRelationProps<TContentType extends UID.ContentType> = PopulateInternalProps &
+  Modules.Documents.Params.Pick<TContentType, "locale:string" | "status"> & {
+    contentType: TContentType
+    relation: Data.Entity<TContentType> | Data.Entity<TContentType>[]
+  }
 
 export type PopulateProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = Omit<
   PopulateBaseProps<TContentType, TSchema>,
