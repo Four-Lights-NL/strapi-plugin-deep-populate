@@ -1,8 +1,9 @@
-# Strapi Deep Populate Plugin
+# Strapi v5 Deep Populate Plugin
 
 [![npm version](https://badge.fury.io/js/@fourlights%2Fstrapi-plugin-deep-populate.svg)](https://badge.fury.io/js/@fourlights%2Fstrapi-plugin-deep-populate)
 
 A Strapi v5 plugin that automatically populates all nested relations in a single request using `populate: '*'`.
+It does not impose a limit on the level of nesting and can cache the populate object for improved performance.
 
 ## Features
 
