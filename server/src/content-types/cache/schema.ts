@@ -22,11 +22,16 @@ export default {
       configurable: false,
       required: true,
     },
+    params: {
+      type: "json",
+      configurable: false,
+      required: true,
+    },
     populate: {
       type: "json",
       configurable: false,
     },
-    dependencies: { type: "json", configurable: false },
+    dependencies: { type: "string", configurable: false },
   },
   // experimental feature:
   indexes: [
@@ -34,6 +39,11 @@ export default {
       name: "deep-populate_cache_hash_index",
       columns: ["hash"],
       type: "unique",
+    },
+    {
+      name: "deep-populate_cache_dependencies_index",
+      columns: ["dependencies"],
+      type: "fulltext",
     },
   ],
 }

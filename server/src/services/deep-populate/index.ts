@@ -255,6 +255,5 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 export default async function populate(params: PopulateParams) {
   const resolvedRelations = new Map()
   const populated = await _populate({ ...params, schema: params.contentType, resolvedRelations })
-  resolvedRelations.clear()
-  return populated
+  return { populate: populated, dependencies: [...resolvedRelations.keys()] }
 }
