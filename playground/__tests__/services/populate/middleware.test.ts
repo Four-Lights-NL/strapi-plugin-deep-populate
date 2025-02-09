@@ -188,5 +188,36 @@ describe("lifecycle", () => {
       const clearedResult = await cacheService.get(params)
       expect(clearedResult).toBeNull()
     })
+
+    test("should delete cached entry for deleted dependants", async () => {
+      const clearCacheSpy = vitest.spyOn(cacheService, "clear")
+      const refreshDependentsCacheSpy = vitest.spyOn(cacheService, "refreshDependents")
+
+      const nestedSection = await strapi.documents(contentType).create({
+        data: { name: "nestedSection" },
+      })
+
+      const parentSection = await strapi.documents(contentType).create({
+        data: { name: "parentSection", sections: [nestedSection.documentId] },
+      })
+
+      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+      setCacheSpy.mockReset()
+
+      // Update the nestedSection, which will clear the cache for nestedSection and refresh it for parentSection
+      await strapi.documents(contentType).update({
+        documentId: nestedSection.documentId,
+        locale: nestedSection.locale,
+        status: nestedSection.status,
+        data: { name: "nestedSectionUpdated" } as Partial<Modules.Documents.Params.Data.Input<typeof contentType>>,
+      })
+
+      expect(clearCacheSpy).toHaveBeenCalledTimes(1)
+      expect(refreshDependentsCacheSpy).toHaveBeenCalledTimes(1)
+      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+
+      clearCacheSpy.mockClear()
+      refreshDependentsCacheSpy.mockClear()
+    })
   })
 })

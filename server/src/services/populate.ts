@@ -16,13 +16,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async get(params: PopulateParams) {
     const { cachePopulate } = strapi.config.get<ReturnType<(typeof config)["default"]>>("plugin::deep-populate")
 
-    if (!cachePopulate) return await populate(params)
+    if (!cachePopulate) return (await populate(params)).populate
 
     const cachedEntry = await strapi.service("plugin::deep-populate.cache").get(params)
     if (cachedEntry) return cachedEntry
 
     const resolved = await populate(params)
-    await strapi.service("plugin::deep-populate.cache").set({ ...params, populate: resolved })
+    await strapi.service("plugin::deep-populate.cache").set({ ...params, ...resolved })
     return resolved
   },
 })

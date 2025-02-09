@@ -47,7 +47,7 @@ const document = await strapi.documents("api.page.page").findOne({
 
 ```ts
 // Get populate object for custom usage
-const populate = await strapi.plugin("deep-populate")
+const { populate } = await strapi.plugin("deep-populate")
   .service("populate")
   .get({
     documentId: 'xyz',

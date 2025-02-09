@@ -537,6 +537,46 @@ export interface PluginContentReleasesReleaseAction
   };
 }
 
+export interface PluginDeepPopulateCache extends Struct.CollectionTypeSchema {
+  collectionName: 'caches';
+  info: {
+    description: 'Holds cached deep populate object';
+    displayName: 'Cache';
+    pluralName: 'caches';
+    singularName: 'cache';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    dependencies: Schema.Attribute.String;
+    hash: Schema.Attribute.String & Schema.Attribute.Required;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'plugin::deep-populate.cache'
+    > &
+      Schema.Attribute.Private;
+    params: Schema.Attribute.JSON & Schema.Attribute.Required;
+    populate: Schema.Attribute.JSON;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface PluginI18NLocale extends Struct.CollectionTypeSchema {
   collectionName: 'i18n_locale';
   info: {
@@ -957,6 +997,7 @@ declare module '@strapi/strapi' {
       'api::section.section': ApiSectionSection;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
+      'plugin::deep-populate.cache': PluginDeepPopulateCache;
       'plugin::i18n.locale': PluginI18NLocale;
       'plugin::review-workflows.workflow': PluginReviewWorkflowsWorkflow;
       'plugin::review-workflows.workflow-stage': PluginReviewWorkflowsWorkflowStage;
