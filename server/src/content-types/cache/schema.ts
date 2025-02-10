@@ -31,7 +31,7 @@ export default {
       type: "json",
       configurable: false,
     },
-    dependencies: { type: "string", configurable: false },
+    dependencies: { type: "text", configurable: false },
   },
   // experimental feature:
   indexes: [
