@@ -17,9 +17,19 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     return entry ? entry.populate : null
   },
   async set({ populate, dependencies, ...params }: SetPopulateParams) {
-    return await strapi
-      .documents("plugin::deep-populate.cache")
-      .create({ data: { hash: getHash(params), params, populate, dependencies: dependencies.join(",") } })
+    const documentService = strapi.documents("plugin::deep-populate.cache")
+    const hash = getHash(params)
+
+    const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
+
+    return entry
+      ? await documentService.update({
+          documentId: entry.documentId,
+          data: { populate, dependencies: dependencies.join(",") } as Partial<
+            Modules.Documents.Params.Data.Input<"plugin::deep-populate.cache">
+          >,
+        })
+      : await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
   },
   async clear(params: PopulateParams) {
     const entry = await strapi
