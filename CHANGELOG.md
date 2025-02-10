@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.4] - 2025-02-10
+
+### Fixed
+
+- Caching will now graciously handle simultaneous cache writes ([#35](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/35)) (Thomas Rijpstra)
+
 ## [1.2.3] - 2025-02-10
 
 ### Changed
@@ -55,6 +61,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.2.4]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.4
 
 [1.2.3]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.3
 
