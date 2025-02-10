@@ -1,4 +1,4 @@
 export default {
-  default: ({ env }) => ({ cachePopulate: true, augmentPopulateStar: true }),
+  default: ({ env }) => ({ useCache: true, replaceWildcard: true }),
   validator: (config) => {},
 }

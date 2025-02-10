@@ -14,9 +14,9 @@ export type PopulateParams<TContentType extends UID.ContentType = UID.ContentTyp
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async get(params: PopulateParams) {
-    const { cachePopulate } = strapi.config.get<ReturnType<(typeof config)["default"]>>("plugin::deep-populate")
+    const { useCache } = strapi.config.get<ReturnType<(typeof config)["default"]>>("plugin::deep-populate")
 
-    if (!cachePopulate) return (await populate(params)).populate
+    if (!useCache) return (await populate(params)).populate
 
     const cachedEntry = await strapi.service("plugin::deep-populate.cache").get(params)
     if (cachedEntry) return cachedEntry
