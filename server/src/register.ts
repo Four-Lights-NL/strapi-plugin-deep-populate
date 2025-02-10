@@ -11,14 +11,15 @@ export default async ({ strapi }) => {
     const columnName = "dependencies"
 
     const hasIndex = await hasDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
+    const hasTable = await strapi.db.connection.schema.hasTable(tableName)
+    const hasColumn = hasTable && (await strapi.db.connection.schema.hasColumn(tableName, columnName))
+    const cacheIsEnabled = strapi.config.get("plugin::deep-populate").cachePopulate === true
 
-    if (strapi.config.get("plugin::deep-populate").cachePopulate === true) {
-      if (!hasIndex) {
-        await addDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
-      }
-    } else if (hasIndex) {
-      await removeDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
-    }
+    const shouldCreateIndex = cacheIsEnabled && hasTable && hasColumn && !hasIndex
+    const shouldRemoveIndex = hasIndex && (!cacheIsEnabled || !hasTable || !hasColumn)
+
+    if (shouldCreateIndex) await addDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
+    if (shouldRemoveIndex) await removeDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
   })
 
   strapi.documents.use(async (context, next) => {
