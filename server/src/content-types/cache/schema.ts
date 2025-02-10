@@ -36,7 +36,7 @@ export default {
   // experimental feature:
   indexes: [
     {
-      name: "deep-populate_cache_hash_index",
+      name: "caches_hash_idx",
       columns: ["hash"],
       type: "unique",
     },
