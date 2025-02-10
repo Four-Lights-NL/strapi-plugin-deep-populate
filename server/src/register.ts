@@ -26,7 +26,7 @@ const populateIsWildcardEquivalent = async ({
 
 export default async ({ strapi }) => {
   strapi.hook("strapi::content-types.afterSync").register(async () => {
-    const tableName = "caches"
+    const tableName = "populate_cache"
     const columnName = "dependencies"
 
     const hasIndex = await hasDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
