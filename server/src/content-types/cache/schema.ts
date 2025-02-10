@@ -40,10 +40,5 @@ export default {
       columns: ["hash"],
       type: "unique",
     },
-    {
-      name: "deep-populate_cache_dependencies_index",
-      columns: ["dependencies"],
-      type: "fulltext",
-    },
   ],
 }
