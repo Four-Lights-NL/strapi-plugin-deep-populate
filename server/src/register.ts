@@ -1,6 +1,26 @@
 import { klona } from "klona/json"
+import {
+  addDeepPopulateCacheFullTextIndex,
+  hasDeepPopulateCacheFullTextIndex,
+  removeDeepPopulateCacheFullTextIndex,
+} from "./migrations"
 
 export default async ({ strapi }) => {
+  strapi.hook("strapi::content-types.afterSync").register(async () => {
+    const tableName = "caches"
+    const columnName = "dependencies"
+
+    const hasIndex = await hasDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
+
+    if (strapi.config.get("plugin::deep-populate").cachePopulate === true) {
+      if (!hasIndex) {
+        await addDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
+      }
+    } else if (hasIndex) {
+      await removeDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
+    }
+  })
+
   strapi.documents.use(async (context, next) => {
     const { cachePopulate, augmentPopulateStar } = strapi.config.get("plugin::deep-populate")
 
