@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.0] - 2025-02-10
+
+### Changed
+
+- **BREAKING CHANGE** Changed configuration properties to better reflect what each option does ([#37](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/37)) (Thomas Rijpstra)
+- Renamed cache database table to `populate_cache` so that it's clear what it holds ([#37](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/37)) (Thomas Rijpstra)
+ 
+### Fixed
+
+- Fix replacement of populate wildcard when using strapi's core factories ([#37](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/37)) (Thomas Rijpstra)
+
 ## [1.2.4] - 2025-02-10
 
 ### Fixed
@@ -61,6 +72,10 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.3.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.3.0
+
+[1.2.5]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.5
 
 [1.2.4]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.4
 
