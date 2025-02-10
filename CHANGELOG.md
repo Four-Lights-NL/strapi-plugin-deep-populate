@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.3] - 2025-02-10
+
+### Changed
+
+- Improve creation and cleanup of full-text cache index ([#33](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/33)) (Thomas Rijpstra)
+
+### Fixed
+
+- Allow specifying unlimited dependencies for a cache entry ([#33](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/33)) (Thomas Rijpstra)
+
 ## [1.2.2] - 2025-02-10
 
 ### Changed
@@ -45,6 +55,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.2.3]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.3
 
 [1.2.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.2
 
