@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.1] - 2025-02-10
+
+### Fixed
+
+- **HOTFIX**: remove incorrect experimental index ([`3a31985`](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/commit/3a31985)) (Thomas Rijpstra)
+
 ## [1.2.0] - 2025-02-09
 
 ### Added
@@ -10,7 +16,7 @@
 
 ### Removed
 
-- Wrapped document service methods 
+- Wrapped document service methods
 
 ## [1.1.2] - 2025-02-04
 
@@ -33,6 +39,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.2.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.1
 
 [1.2.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.0
 
