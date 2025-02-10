@@ -1,3 +1,5 @@
+import type { Core, Schema, UID } from "@strapi/strapi"
+import { sanitize } from "@strapi/utils"
 import { klona } from "klona/json"
 import {
   addDeepPopulateCacheFullTextIndex,
@@ -5,8 +7,21 @@ import {
   removeDeepPopulateCacheFullTextIndex,
 } from "./migrations"
 
-const populateIsWildcardEquivalent = async ({ populate }: { populate: unknown }) => {
-  return populate === "*" || populate === true
+const populateIsWildcardEquivalent = async ({
+  strapi,
+  schema,
+  populate,
+}: { strapi: Core.Strapi; schema: Schema.ContentType; populate: unknown }) => {
+  // NOTE: Strapi does all kinds of magic on the populate object, so we need to check if that's the case
+  const expandedWildcardQuery = await sanitize.sanitizers.defaultSanitizePopulate(
+    {
+      schema,
+      getModel: (uid: string) => strapi.getModel(uid as UID.Schema),
+    },
+    "*",
+  )
+
+  return populate === "*" || populate === true || JSON.stringify(expandedWildcardQuery) === JSON.stringify(populate)
 }
 
 export default async ({ strapi }) => {
@@ -40,7 +55,8 @@ export default async ({ strapi }) => {
     const cacheService = strapi.plugin("deep-populate").service("cache")
 
     const { populate } = context.params
-    const returnDeeplyPopulated = replaceWildcard && (await populateIsWildcardEquivalent({ populate }))
+    const returnDeeplyPopulated =
+      replaceWildcard && (await populateIsWildcardEquivalent({ strapi, schema: context.contentType, populate }))
 
     if (useCache && context.action === "delete")
       await cacheService.clear({ ...context.params, contentType: context.uid })
