@@ -1,6 +1,6 @@
 export default {
   kind: "collectionType",
-  collectionName: "caches",
+  collectionName: "populate_cache",
   info: {
     singularName: "cache",
     pluralName: "caches",

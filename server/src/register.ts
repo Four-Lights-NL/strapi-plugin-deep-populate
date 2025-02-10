@@ -1,3 +1,5 @@
+import type { Core, Schema, UID } from "@strapi/strapi"
+import { sanitize } from "@strapi/utils"
 import { klona } from "klona/json"
 import {
   addDeepPopulateCacheFullTextIndex,
@@ -5,15 +7,32 @@ import {
   removeDeepPopulateCacheFullTextIndex,
 } from "./migrations"
 
+const populateIsWildcardEquivalent = async ({
+  strapi,
+  schema,
+  populate,
+}: { strapi: Core.Strapi; schema: Schema.ContentType; populate: unknown }) => {
+  // NOTE: Strapi does all kinds of magic on the populate object, so we need to check if that's the case
+  const expandedWildcardQuery = await sanitize.sanitizers.defaultSanitizePopulate(
+    {
+      schema,
+      getModel: (uid: string) => strapi.getModel(uid as UID.Schema),
+    },
+    "*",
+  )
+
+  return populate === "*" || populate === true || JSON.stringify(expandedWildcardQuery) === JSON.stringify(populate)
+}
+
 export default async ({ strapi }) => {
   strapi.hook("strapi::content-types.afterSync").register(async () => {
-    const tableName = "caches"
+    const tableName = "populate_cache"
     const columnName = "dependencies"
 
     const hasIndex = await hasDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
     const hasTable = await strapi.db.connection.schema.hasTable(tableName)
     const hasColumn = hasTable && (await strapi.db.connection.schema.hasColumn(tableName, columnName))
-    const cacheIsEnabled = strapi.config.get("plugin::deep-populate").cachePopulate === true
+    const cacheIsEnabled = strapi.config.get("plugin::deep-populate").useCache === true
 
     const shouldCreateIndex = cacheIsEnabled && hasTable && hasColumn && !hasIndex
     const shouldRemoveIndex = hasIndex && (!cacheIsEnabled || !hasTable || !hasColumn)
@@ -23,11 +42,11 @@ export default async ({ strapi }) => {
   })
 
   strapi.documents.use(async (context, next) => {
-    const { cachePopulate, augmentPopulateStar } = strapi.config.get("plugin::deep-populate")
+    const { useCache, replaceWildcard } = strapi.config.get("plugin::deep-populate")
 
     if (
       // do nothing if not configured
-      (!cachePopulate && !augmentPopulateStar) ||
+      (!useCache && !replaceWildcard) ||
       context.uid === "plugin::deep-populate.cache"
     )
       return await next()
@@ -36,9 +55,10 @@ export default async ({ strapi }) => {
     const cacheService = strapi.plugin("deep-populate").service("cache")
 
     const { populate } = context.params
-    const returnDeeplyPopulated = augmentPopulateStar && populate === "*"
+    const returnDeeplyPopulated =
+      replaceWildcard && (await populateIsWildcardEquivalent({ strapi, schema: context.contentType, populate }))
 
-    if (cachePopulate && context.action === "delete")
+    if (useCache && context.action === "delete")
       await cacheService.clear({ ...context.params, contentType: context.uid })
 
     const originalFields = klona(context.fields)
@@ -51,10 +71,10 @@ export default async ({ strapi }) => {
     if (["create", "update"].includes(context.action)) {
       const { documentId, status, locale } = result
 
-      if (cachePopulate && context.action === "update")
+      if (useCache && context.action === "update")
         await cacheService.clear({ ...context.params, contentType: context.uid })
 
-      if (cachePopulate || returnDeeplyPopulated) {
+      if (useCache || returnDeeplyPopulated) {
         const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
         if (returnDeeplyPopulated)
           return await strapi

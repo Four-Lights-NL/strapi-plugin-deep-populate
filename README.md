@@ -27,8 +27,11 @@ Enable deep population in your Strapi config:
 // config/plugins.js
 module.exports = ({ env }) => ({
   'deep-populate': {
-    augmentPopulateStar: true, // default
-    cachePopulate: true // default
+    enabled: true,
+    config: {
+      useCache: true, // default
+      replaceWildcard: true, // default
+    }
   }
 });
 ```
@@ -63,7 +66,7 @@ const document = await strapi.documents('api::page.page').findOne({
 
 ### Caching
 
-The plugin caches populate objects to improve performance. Cache can be disabled via the `cachePopulate` setting.
+The plugin caches populate objects to improve performance. Cache can be disabled via the `useCache` setting.
 
 ### Creator Fields
 
