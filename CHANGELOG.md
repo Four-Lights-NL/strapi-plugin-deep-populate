@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2] - 2025-02-10
+
+### Changed
+
+- Cache lookups will now be quicker on sqlite, mysql/mariadb or postgresql due to full-text index on cache dependencies ([#31](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/31)) (Thomas Rijpstra)
+
 ## [1.2.1] - 2025-02-10
 
 ### Fixed
@@ -39,6 +45,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.2.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.2
 
 [1.2.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.2.1
 
