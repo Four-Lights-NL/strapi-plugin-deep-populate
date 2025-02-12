@@ -36,20 +36,15 @@
     "playground:yalc-add-link": "cd playground && yalc add --link @fourlights/strapi-plugin-deep-populate"
   },
   "dependencies": {
-    "dlv": "^1.1.3",
-    "dset": "^3.1.4",
-    "klona": "^2.0.6"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@strapi/sdk-plugin": "^5.3.0",
     "@strapi/strapi": "^5.8.0",
     "@strapi/typescript-utils": "^5.8.0",
-    "@types/dlv": "^1.1.5",
     "@types/supertest": "^6.0.2",
-    "@vitest/ui": "^3.0.5",
     "better-sqlite3": "^11.8.1",
-    "lodash": "^4.17.21",
     "npm-run-all": "^4.1.5",
     "release-it": "^18.1.1",
     "simple-git": "^3.27.0",

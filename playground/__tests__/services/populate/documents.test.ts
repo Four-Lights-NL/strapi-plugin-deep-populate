@@ -1,4 +1,4 @@
-import delve from "dlv"
+import get from "lodash/get"
 import { setupDocuments } from "../../helpers/setupDocuments"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 import type { UnwrapPromise } from "../../helpers/unwrapPromise"
@@ -33,8 +33,8 @@ describe("documents", () => {
         sections: [expected.primarySection],
       }
 
-      expect(delve(document, "sections.0.sections.0")).toEqual(expected.nestedSection)
-      expect(delve(document, "sections.0")).toEqual(expected.primarySection)
+      expect(get(document, "sections.0.sections.0")).toEqual(expected.nestedSection)
+      expect(get(document, "sections.0")).toEqual(expected.primarySection)
       expect(document).toEqual(expected.page)
     })
 
