@@ -1,13 +1,13 @@
 import type { Data, Modules, UID } from "@strapi/strapi"
-import type { ContentTypeConfigBlacklist, ContentTypeConfigWhitelist } from "../../config"
+import type { ContentTypeConfigAllow, ContentTypeConfigDeny } from "../../config"
 
 type PopulateType = Record<string, "*" | { populate: unknown } | { on: Record<`${string}.${string}`, unknown> }> | true
 
 type PopulateInternalProps = {
   resolvedRelations: Map<string, PopulateType>
   omitEmpty?: boolean
-  __blacklist?: ContentTypeConfigBlacklist
-  __whitelist?: ContentTypeConfigWhitelist
+  __deny?: ContentTypeConfigDeny
+  __allow?: ContentTypeConfigAllow
 }
 type PopulateBaseProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = PopulateInternalProps &
   Modules.Documents.Params.Pick<TContentType, "locale:string" | "status"> & {

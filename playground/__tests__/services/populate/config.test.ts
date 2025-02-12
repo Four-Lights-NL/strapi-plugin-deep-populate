@@ -67,10 +67,10 @@ describe("config", () => {
     configSpy.mockClear()
   })
 
-  describe("blacklist", () => {
-    test("should not populate blacklisted relations", async () => {
+  describe("deny", () => {
+    test("should not populate denied relations", async () => {
       configContentTypes[contentType] = {
-        blacklist: { relations: [contentType] },
+        deny: { relations: [contentType] },
       }
 
       const document = await strapi
@@ -88,9 +88,9 @@ describe("config", () => {
       })
     })
 
-    test("should not populate blacklisted components", async () => {
+    test("should not populate denied components", async () => {
       configContentTypes[contentType] = {
-        blacklist: { components: ["shared.link"] },
+        deny: { components: ["shared.link"] },
       }
 
       const document = await strapi
