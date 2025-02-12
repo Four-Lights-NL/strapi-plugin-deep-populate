@@ -61,7 +61,7 @@ describe("lifecycle", () => {
     })
 
     // Re-usable expectations for cleaner tests
-    // non populated
+    // non-populated
     expected.thirdNonPopulated = getNonPopulated(sections.third as Data.Entity<typeof contentType>)
     expected.secondNonPopulated = getNonPopulated(sections.second as Data.Entity<typeof contentType>)
     expected.firstNonPopulated = getNonPopulated(sections.first as Data.Entity<typeof contentType>)

@@ -8,6 +8,9 @@ export default defineConfig({
     testTimeout: 20000,
     isolate: false,
     poolOptions: {
+      forks: {
+        singleFork: true,
+      },
       threads: {
         singleThread: true,
       },
