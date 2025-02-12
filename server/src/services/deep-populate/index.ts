@@ -1,10 +1,11 @@
 import type { Data, UID } from "@strapi/strapi"
 import { contentTypes } from "@strapi/utils"
-import delve from "dlv"
 
 import cloneDeep from "lodash/cloneDeep"
+import get from "lodash/get"
 import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
+
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 import { getRelations, hasValue, isEmpty } from "./utils"
@@ -114,7 +115,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
       throw Error("Nested dynamic zones are not supported")
     }
 
-    const dynamicZoneValue = delve(document, dynamicZoneLookup) ?? []
+    const dynamicZoneValue = dynamicZoneLookup.length === 0 ? document : get(document, dynamicZoneLookup, [])
     const componentValue = dynamicZoneValue
       .filter((b) => b.__component === dynamicZoneComponent)
       .map((c) => _resolveValue({ document: c, lookup: componentLookup, attrName }))
@@ -128,7 +129,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
     const parentLookup = lookup.slice(0, populateIdx)
     const childLookup = lookup[populateIdx + 1]
 
-    const parentValue = delve(document, parentLookup)
+    const parentValue = parentLookup.length === 0 ? document : get(document, parentLookup)
     const childValue = (Array.isArray(parentValue) ? parentValue : [parentValue]).map((v) =>
       _resolveValue({ document: v, lookup: childLookup, attrName }),
     )
@@ -138,7 +139,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
   }
 
   // Otherwise, we'll just do a normal lookup
-  const parentValue = delve(document, lookup)
+  const parentValue = lookup.length === 0 ? document : get(document, lookup)
   if (Array.isArray(parentValue)) {
     return parentValue.map((v) => v[attrName]).filter((v) => hasValue(v))
   }
@@ -165,7 +166,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   // Make sure we retrieve all related objects one level below this on
   for (const [attrName] of relations) {
     if (lookup.length > 0) {
-      const parent = delve(currentPopulate, lookup)
+      const parent = get(currentPopulate, lookup)
       if (parent === undefined || (parent !== "*" && "populate" in parent && parent.populate === "*"))
         set(currentPopulate, [...lookup, "populate"], {})
       set(currentPopulate, [...lookup, "populate", attrName], { populate: "*" })
