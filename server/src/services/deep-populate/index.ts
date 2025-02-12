@@ -1,10 +1,10 @@
 import type { Data, UID } from "@strapi/strapi"
 import { contentTypes } from "@strapi/utils"
 import delve from "dlv"
-import { dset } from "dset/merge"
-import { klona } from "klona/json"
 
-import { mergeWith } from "lodash"
+import cloneDeep from "lodash/cloneDeep"
+import mergeWith from "lodash/mergeWith"
+import set from "lodash/set"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 import { getRelations, hasValue, isEmpty } from "./utils"
@@ -19,7 +19,7 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   const componentLookup = lookup.length === 0 ? [attrName] : [...lookup, inDynamicZone ? "on" : "populate", attrName]
 
   const componentPopulate = populate
-  dset(componentPopulate, componentLookup, { populate: "*" })
+  set(componentPopulate, componentLookup, { populate: "*" })
 
   const nestedPopulate = await _populate({
     populate: componentPopulate,
@@ -47,7 +47,7 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
       ...params,
     })
 
-    dset(resolvedPopulate, [component], componentPopulate) // NOTE: We pass cur as `array` so that the dot notation is used as the key
+    set(resolvedPopulate, [component], componentPopulate) // NOTE: We pass cur as `array` so that the dot notation is used as the key
   }
 
   if (isEmpty(resolvedPopulate)) return undefined
@@ -157,7 +157,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   const newPopulate = {}
 
   let relations = getRelations(strapi.getModel(schema))
-  let currentPopulate = klona(populate)
+  let currentPopulate = cloneDeep(populate)
 
   // Make sure we won't revisit this documentId from nested children
   resolvedRelations.set(params.documentId, true)
@@ -167,10 +167,10 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
     if (lookup.length > 0) {
       const parent = delve(currentPopulate, lookup)
       if (parent === undefined || (parent !== "*" && "populate" in parent && parent.populate === "*"))
-        dset(currentPopulate, [...lookup, "populate"], {})
-      dset(currentPopulate, [...lookup, "populate", attrName], { populate: "*" })
+        set(currentPopulate, [...lookup, "populate"], {})
+      set(currentPopulate, [...lookup, "populate", attrName], { populate: "*" })
     } else {
-      dset(currentPopulate, attrName, { populate: "*" })
+      set(currentPopulate, attrName, { populate: "*" })
     }
   }
 

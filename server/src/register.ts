@@ -1,6 +1,7 @@
 import type { Core, Schema, UID } from "@strapi/strapi"
 import { sanitize } from "@strapi/utils"
-import { klona } from "klona/json"
+import cloneDeep from "lodash/cloneDeep"
+
 import {
   addDeepPopulateCacheFullTextIndex,
   hasDeepPopulateCacheFullTextIndex,
@@ -61,7 +62,7 @@ export default async ({ strapi }) => {
     if (useCache && context.action === "delete")
       await cacheService.clear({ ...context.params, contentType: context.uid })
 
-    const originalFields = klona(context.fields)
+    const originalFields = cloneDeep(context.fields)
 
     if (returnDeeplyPopulated && ["findOne", "findFirst", "findMany"].includes(context.action))
       context.fields = ["documentId", "status", "locale"]
