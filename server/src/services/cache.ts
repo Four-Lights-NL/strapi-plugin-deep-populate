@@ -6,7 +6,7 @@ type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
 
 const getHash = (params: PopulateParams) => {
-  return `${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}`
+  return `${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
 }
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({

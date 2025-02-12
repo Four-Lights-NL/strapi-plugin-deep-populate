@@ -74,11 +74,7 @@ async function _populateRelation<TContentType extends UID.ContentType>({
   contentType,
   relation,
   resolvedRelations,
-  omitEmpty,
-  locale,
-  status,
-  __deny,
-  __allow,
+  ...params
 }: PopulateRelationProps<TContentType>) {
   const isSingleRelation = !Array.isArray(relation)
   const relations = isSingleRelation ? [relation] : relation
@@ -93,11 +89,7 @@ async function _populateRelation<TContentType extends UID.ContentType>({
       documentId: relation.documentId,
       schema: contentType,
       resolvedRelations,
-      omitEmpty,
-      locale,
-      status,
-      __deny,
-      __allow,
+      ...params,
     })
 
     resolvedRelations.set(relation.documentId, relationPopulate)
@@ -206,7 +198,12 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
     const value = _resolveValue({ document, attrName, lookup })
 
     if (!hasValue(value)) {
-      if (!omitEmpty) newPopulate[attrName] = true
+      if (omitEmpty !== true) newPopulate[attrName] = true
+      continue
+    }
+
+    if (params.localizations !== true && attrName === "localizations" && hasValue(value)) {
+      newPopulate[attrName] = true
       continue
     }
 
@@ -269,6 +266,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         omitEmpty,
         locale: params.locale,
         status: params.status,
+        localizations: params.localizations,
         __deny,
         __allow,
       })
