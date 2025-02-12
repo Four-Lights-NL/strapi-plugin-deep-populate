@@ -10,6 +10,7 @@ export type PopulateParams<TContentType extends UID.ContentType = UID.ContentTyp
   contentType: TContentType
   documentId: string
   omitEmpty?: boolean
+  localizations?: boolean
 }
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({

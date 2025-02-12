@@ -6,6 +6,7 @@ type PopulateType = Record<string, "*" | { populate: unknown } | { on: Record<`$
 type PopulateInternalProps = {
   resolvedRelations: Map<string, PopulateType>
   omitEmpty?: boolean
+  localizations?: boolean
   __deny?: ContentTypeConfigDeny
   __allow?: ContentTypeConfigAllow
 }
