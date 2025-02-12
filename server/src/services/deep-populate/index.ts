@@ -6,15 +6,20 @@ import get from "lodash/get"
 import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
+import { has } from "lodash"
+import type { Config } from "../../config"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 import { getRelations, hasValue, isEmpty } from "./utils"
 
 async function _populateComponent<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
+  schema,
   populate = {},
   lookup,
   attrName,
   inDynamicZone = false,
+  __whitelist,
+  __blacklist,
   ...params
 }: PopulateComponentProps<TContentType, TSchema>) {
   const componentLookup = lookup.length === 0 ? [attrName] : [...lookup, inDynamicZone ? "on" : "populate", attrName]
@@ -22,9 +27,15 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   const componentPopulate = populate
   set(componentPopulate, componentLookup, { populate: "*" })
 
+  if (__whitelist?.components && !__whitelist.components.includes(schema as UID.Component)) return { populate: "*" }
+  if (__blacklist?.components?.includes(schema as UID.Component)) return { populate: "*" }
+
   const nestedPopulate = await _populate({
+    schema,
     populate: componentPopulate,
     lookup: componentLookup,
+    __whitelist,
+    __blacklist,
     ...params,
   })
   return isEmpty(nestedPopulate) ? true : { populate: nestedPopulate }
@@ -66,6 +77,8 @@ async function _populateRelation<TContentType extends UID.ContentType>({
   omitEmpty,
   locale,
   status,
+  __blacklist,
+  __whitelist,
 }: PopulateRelationProps<TContentType>) {
   const isSingleRelation = !Array.isArray(relation)
   const relations = isSingleRelation ? [relation] : relation
@@ -83,6 +96,8 @@ async function _populateRelation<TContentType extends UID.ContentType>({
       omitEmpty,
       locale,
       status,
+      __blacklist,
+      __whitelist,
     })
 
     resolvedRelations.set(relation.documentId, relationPopulate)
@@ -153,6 +168,8 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   lookup = [],
   resolvedRelations,
   omitEmpty,
+  __blacklist,
+  __whitelist,
   ...params
 }: PopulateProps<TContentType, TSchema>) {
   const newPopulate = {}
@@ -183,7 +200,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
   currentPopulate = null
 
-  // Filter relations on actual value
+  // Filter relations on actual value and optional whitelisting or blacklisting
   const resolveRelations = []
   for (const [attrName, attr] of relations) {
     const value = _resolveValue({ document, attrName, lookup })
@@ -191,6 +208,30 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
     if (!hasValue(value)) {
       if (!omitEmpty) newPopulate[attrName] = true
       continue
+    }
+
+    if (contentTypes.isRelationalAttribute(attr)) {
+      if (__whitelist?.relations && !__whitelist.relations.includes(attr.target as UID.ContentType)) {
+        newPopulate[attrName] = true
+        continue
+      }
+
+      if (__blacklist?.relations?.includes(attr.target as UID.ContentType)) {
+        newPopulate[attrName] = true
+        continue
+      }
+    }
+
+    if (contentTypes.isComponentAttribute(attr) && !contentTypes.isDynamicZoneAttribute(attr)) {
+      if (__whitelist?.components && !__whitelist.components.includes(attr.component as UID.Component)) {
+        newPopulate[attrName] = true
+        continue
+      }
+
+      if (__blacklist?.components?.includes(attr.component as UID.Component)) {
+        newPopulate[attrName] = true
+        continue
+      }
     }
 
     resolveRelations.push([attrName, attr, value])
@@ -214,6 +255,8 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         attrName,
         resolvedRelations,
         omitEmpty,
+        __blacklist,
+        __whitelist,
         ...params,
       })
     }
@@ -226,6 +269,8 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         omitEmpty,
         locale: params.locale,
         status: params.status,
+        __blacklist,
+        __whitelist,
       })
     }
 
@@ -237,6 +282,8 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         attrName,
         resolvedRelations,
         omitEmpty,
+        __blacklist,
+        __whitelist,
         ...params,
       })
     }
@@ -250,7 +297,17 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 }
 
 export default async function populate(params: PopulateParams) {
+  const { contentTypes } = strapi.config.get("plugin::deep-populate") as Config
+  const contentTypeConfig = has(contentTypes, params.contentType) ? get(contentTypes, params.contentType) : {}
+  const { whitelist, blacklist } = contentTypeConfig
+
   const resolvedRelations = new Map()
-  const populated = await _populate({ ...params, schema: params.contentType, resolvedRelations })
+  const populated = await _populate({
+    ...params,
+    schema: params.contentType,
+    resolvedRelations,
+    __blacklist: blacklist,
+    __whitelist: whitelist,
+  })
   return { populate: populated, dependencies: [...resolvedRelations.keys()] }
 }
