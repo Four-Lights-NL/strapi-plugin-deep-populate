@@ -538,7 +538,7 @@ export interface PluginContentReleasesReleaseAction
 }
 
 export interface PluginDeepPopulateCache extends Struct.CollectionTypeSchema {
-  collectionName: 'caches';
+  collectionName: 'populate_cache';
   info: {
     description: 'Holds cached deep populate object';
     displayName: 'Cache';
@@ -560,7 +560,7 @@ export interface PluginDeepPopulateCache extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    dependencies: Schema.Attribute.String;
+    dependencies: Schema.Attribute.Text;
     hash: Schema.Attribute.String & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
