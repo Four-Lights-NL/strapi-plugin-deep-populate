@@ -67,6 +67,7 @@ export default async ({ strapi }) => {
       context.fields = ["documentId", "status", "locale"]
 
     const result = await next()
+    if (!result) return result
 
     if (["create", "update"].includes(context.action)) {
       const { documentId, status, locale } = result
