@@ -2,19 +2,19 @@ import type { UID } from "@strapi/strapi"
 import isEmpty from "lodash/isEmpty"
 import isObject from "lodash/isObject"
 
-export type ContentTypeConfigWhitelist = {
+export type ContentTypeConfigAllow = {
   relations?: UID.ContentType[]
   components?: UID.Component[]
 }
 
-export type ContentTypeConfigBlacklist = {
+export type ContentTypeConfigDeny = {
   relations?: UID.ContentType[]
   components?: UID.Component[]
 }
 
 type ContentTypeConfig = {
-  whitelist?: ContentTypeConfigWhitelist
-  blacklist?: ContentTypeConfigBlacklist
+  allow?: ContentTypeConfigAllow
+  deny?: ContentTypeConfigDeny
 }
 
 export type Config = {
@@ -34,31 +34,29 @@ export default {
         if (!isObject(contentTypeConfig)) {
           throw new Error(`plugin::deep-populate config.contentTypes.${uid} must be an object`)
         }
-        if (!contentTypeConfig.whitelist && !contentTypeConfig.blacklist) {
-          throw new Error(
-            `plugin::deep-populate config.contentTypes.${uid} must have either a "whitelist" or "blacklist".`,
-          )
+        if (!contentTypeConfig.allow && !contentTypeConfig.deny) {
+          throw new Error(`plugin::deep-populate config.contentTypes.${uid} must have an "allow" or "deny".`)
         }
-        if (contentTypeConfig.whitelist && !isObject(contentTypeConfig.whitelist)) {
-          throw new Error(`plugin::deep-populate config.contentTypes.${uid}.whitelist must be an object`)
+        if (contentTypeConfig.allow && !isObject(contentTypeConfig.allow)) {
+          throw new Error(`plugin::deep-populate config.contentTypes.${uid}.allow must be an object`)
         }
-        if (contentTypeConfig.blacklist && !isObject(contentTypeConfig.blacklist)) {
-          throw new Error(`plugin::deep-populate config.contentTypes.${uid}.blacklist must be an object`)
+        if (contentTypeConfig.deny && !isObject(contentTypeConfig.deny)) {
+          throw new Error(`plugin::deep-populate config.contentTypes.${uid}.deny must be an object`)
         }
-        if (contentTypeConfig.whitelist) {
-          if (contentTypeConfig.whitelist.relations && !Array.isArray(contentTypeConfig.whitelist.relations)) {
-            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.whitelist.relations must be an array`)
+        if (contentTypeConfig.allow) {
+          if (contentTypeConfig.allow.relations && !Array.isArray(contentTypeConfig.allow.relations)) {
+            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.allow.relations must be an array`)
           }
-          if (contentTypeConfig.whitelist.components && !Array.isArray(contentTypeConfig.whitelist.components)) {
-            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.whitelist.components must be an array`)
+          if (contentTypeConfig.allow.components && !Array.isArray(contentTypeConfig.allow.components)) {
+            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.allow.components must be an array`)
           }
         }
-        if (contentTypeConfig.blacklist) {
-          if (contentTypeConfig.blacklist.relations && !Array.isArray(contentTypeConfig.blacklist.relations)) {
-            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.blacklist.relations must be an array`)
+        if (contentTypeConfig.deny) {
+          if (contentTypeConfig.deny.relations && !Array.isArray(contentTypeConfig.deny.relations)) {
+            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.deny.relations must be an array`)
           }
-          if (contentTypeConfig.blacklist.components && !Array.isArray(contentTypeConfig.blacklist.components)) {
-            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.blacklist.components must be an array`)
+          if (contentTypeConfig.deny.components && !Array.isArray(contentTypeConfig.deny.components)) {
+            throw new Error(`plugin::deep-populate config.contentTypes.${uid}.deny.components must be an array`)
           }
         }
       }
