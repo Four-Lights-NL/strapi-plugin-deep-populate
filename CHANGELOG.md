@@ -1,12 +1,24 @@
 # Changelog
 
+## [1.3.1] - 2025-02-12
+
+### Changed
+
+- Use `lodash/get` instead of `dlv` for path lookups ([#40](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/40)) (Thomas Rijpstra)
+- Use lodash equivalent utilities for `dset` and `klona` ([#40](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/40)) (Thomas Rijpstra)
+ 
+### Fixed
+
+- Fix incorrect merging of nested populate relations ([#40](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/40)) (Thomas Rijpstra)
+- Fix middleware error when object was not found ([#39](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/39)) (Thomas Rijpstra)
+
 ## [1.3.0] - 2025-02-10
 
 ### Changed
 
 - **BREAKING CHANGE** Changed configuration properties to better reflect what each option does ([#37](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/37)) (Thomas Rijpstra)
 - Renamed cache database table to `populate_cache` so that it's clear what it holds ([#37](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/37)) (Thomas Rijpstra)
- 
+
 ### Fixed
 
 - Fix replacement of populate wildcard when using strapi's core factories ([#37](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/37)) (Thomas Rijpstra)
@@ -72,6 +84,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.3.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.3.1
 
 [1.3.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.3.0
 
