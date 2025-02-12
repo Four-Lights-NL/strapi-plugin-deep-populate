@@ -68,7 +68,7 @@ describe("config", () => {
   })
 
   describe("deny", () => {
-    test("should not populate denied relations", async () => {
+    it("should not populate denied relations", async () => {
       configContentTypes[contentType] = {
         deny: { relations: [contentType] },
       }
@@ -88,7 +88,7 @@ describe("config", () => {
       })
     })
 
-    test("should not populate denied components", async () => {
+    it("should not populate denied components", async () => {
       configContentTypes[contentType] = {
         deny: { components: ["shared.link"] },
       }
@@ -105,6 +105,35 @@ describe("config", () => {
             blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
           },
         ],
+      })
+    })
+
+    it("should not populate denied contenttypes from wildcard configuration", async () => {
+      configContentTypes["*"] = {
+        deny: { components: ["shared.link"] },
+      }
+
+      const document = await strapi
+        .documents(contentType)
+        .findOne({ documentId: context.pageWithLink.documentId, populate: "*" })
+
+      const section = await strapi
+        .documents("api::section.section")
+        .findOne({ documentId: context.sectionWithLink.documentId, populate: "*" })
+
+      expect(document).toEqual({
+        ...context.pageWithLink,
+        sections: [
+          {
+            ...context.sectionWithLink,
+            blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
+          },
+        ],
+      })
+
+      expect(section).toEqual({
+        ...context.sectionWithLink,
+        blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
       })
     })
   })
