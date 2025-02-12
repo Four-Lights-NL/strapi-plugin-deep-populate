@@ -12,6 +12,7 @@ It does not impose a limit on the level of nesting and can cache the populate ob
 - Handles circular references and edge cases
 - Includes caching for improved performance
 - Honors `populateCreatorFields` setting
+- Supports whitelisting or blacklisting specific relations or components during population
 
 ## Installation
 
@@ -71,6 +72,35 @@ The plugin caches populate objects to improve performance. Cache can be disabled
 ### Creator Fields
 
 The plugin automatically populates `createdBy` and `updatedBy` fields when `populateCreatorFields` is enabled in the content-type configuration.
+
+### Whitelisting or Blacklisting
+
+Sometimes you may want to restrict the nested population of certain relations or components. For example if you have a `Page` contentType where a deeply nested `Link` component has a relation to another `Page`.
+In those situations you can use the whitelist or blacklist configuration:
+
+```ts
+// config/plugins.js
+module.exports = ({ env }) => ({
+  'deep-populate': {
+    enabled: true,
+    config: {
+      useCache: true,
+      replaceWildcard: true,
+      
+      contentTypes: {
+        'api::page.page': {
+          /* whitelist: { relations: [], components[] } */
+          blacklist: {
+            relations: ['api::page.page']  // prevent resolving nested pages when populating a page
+            // alternatively we could have blacklisted the link component in this case
+            // components: ['shared.link']
+          }
+        }
+      }
+    }
+  }
+});
+```
 
 ## How It Works
 
