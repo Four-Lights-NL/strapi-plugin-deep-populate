@@ -3,10 +3,10 @@ import { contentTypes } from "@strapi/utils"
 
 import cloneDeep from "lodash/cloneDeep"
 import get from "lodash/get"
+import has from "lodash/has"
 import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
-import { has } from "lodash"
 import type { Config } from "../../config"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
@@ -298,7 +298,10 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
 export default async function populate(params: PopulateParams) {
   const { contentTypes } = strapi.config.get("plugin::deep-populate") as Config
-  const contentTypeConfig = has(contentTypes, params.contentType) ? get(contentTypes, params.contentType) : {}
+  const contentTypeConfig = has(contentTypes, "*") ? get(contentTypes, "*") : {}
+  if (has(contentTypes, params.contentType)) {
+    mergeWith(contentTypeConfig, get(contentTypes, params.contentType))
+  }
   const { allow, deny } = contentTypeConfig
 
   const resolvedRelations = new Map()
