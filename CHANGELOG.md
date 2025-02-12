@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1] - 2025-02-12
+
+### Changed
+
+- Allow & Deny lists can now also be set with a `*` (wildcard) ([#46](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/46)) (Thomas Rijpstra)
+
+- Localizations will not be populated unless specifically asked to ([#47](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/47)) (Thomas Rijpstra)
+
 ## [1.4.0] - 2025-02-12
 
 ### Added
@@ -90,6 +98,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.4.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.4.1
 
 [1.4.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.4.0
 
