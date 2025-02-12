@@ -4,6 +4,7 @@ import delve from "dlv"
 import { dset } from "dset/merge"
 import { klona } from "klona/json"
 
+import { mergeWith } from "lodash"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 import { getRelations, hasValue, isEmpty } from "./utils"
@@ -90,7 +91,10 @@ async function _populateRelation<TContentType extends UID.ContentType>({
   const newPopulate = {} as Record<UID.Schema, unknown>
   for (const { documentId } of relations) {
     const relationPopulate = resolvedRelations.get(documentId)
-    Object.keys(relationPopulate).map((r) => dset(newPopulate, r, relationPopulate[r]))
+    mergeWith(newPopulate, relationPopulate, (existing, proposed) => {
+      if (proposed === true && existing) return existing
+      return undefined
+    })
   }
 
   return isEmpty(newPopulate) ? true : { populate: newPopulate }
