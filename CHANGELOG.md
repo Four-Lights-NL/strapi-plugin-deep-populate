@@ -1,12 +1,18 @@
 # Changelog
 
+## [1.4.0] - 2025-02-12
+
+### Added
+
+- You can now configure the plugin using optional `deny` and `allow` lists to control where it should not go ([#43](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/43), [#43](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/43)) (Thomas Rijpstra)
+
 ## [1.3.1] - 2025-02-12
 
 ### Changed
 
 - Use `lodash/get` instead of `dlv` for path lookups ([#40](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/40)) (Thomas Rijpstra)
 - Use lodash equivalent utilities for `dset` and `klona` ([#40](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/40)) (Thomas Rijpstra)
- 
+
 ### Fixed
 
 - Fix incorrect merging of nested populate relations ([#40](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/40)) (Thomas Rijpstra)
@@ -84,6 +90,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.4.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.4.0
 
 [1.3.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.3.1
 
