@@ -51,7 +51,7 @@ const document = await strapi.documents("api.page.page").findOne({
 
 ```ts
 // Get populate object for custom usage
-const { populate } = await strapi.plugin("deep-populate")
+const populate = await strapi.plugin("deep-populate")
   .service("populate")
   .get({
     documentId: 'xyz',
@@ -88,6 +88,7 @@ module.exports = ({ env }) => ({
       replaceWildcard: true,
       
       contentTypes: {
+        // '*' would apply to all content types
         'api::page.page': {
           deny: {
             relations: ['api::page.page']  // prevent resolving nested pages when populating a page
