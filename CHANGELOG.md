@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0] - 2025-02-13
+
+### Changed
+
+- Update `README` with `wildcard` allow/deny lists example ([#49](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/49)) (Thomas Rijpstra)
+
+### Fixed
+
+- Fix inconsistent return type of populate `get` ([#49](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/49)) (Thomas Rijpstra)
+
 ## [1.4.1] - 2025-02-12
 
 ### Changed
@@ -98,6 +108,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.5.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.5.0
 
 [1.4.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.4.1
 
