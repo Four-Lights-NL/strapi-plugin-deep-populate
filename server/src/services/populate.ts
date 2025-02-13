@@ -24,6 +24,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const resolved = await populate(params)
     await strapi.service("plugin::deep-populate.cache").set({ ...params, ...resolved })
-    return resolved
+    return resolved.populate
   },
 })

@@ -34,17 +34,17 @@ describe("get", () => {
     })
 
     test("no relation", async () => {
-      const { populate } = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
       expect(populate).toStrictEqual({})
     })
 
     test("relation one level deep", async () => {
-      const { populate } = await service.get({ contentType, documentId: sections[1].documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId: sections[1].documentId, omitEmpty: true })
       expect(populate).toStrictEqual({ sections: true })
     })
 
     test("relation two levels deep", async () => {
-      const { populate } = await service.get({ contentType, documentId: sections[2].documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId: sections[2].documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         sections: { populate: { sections: true } },
       })
@@ -68,7 +68,7 @@ describe("get", () => {
           Modules.Documents.Params.Data.Input<typeof contentType>
         >,
       })
-      const { populate } = await service.get({ contentType, documentId: sectionA.documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId: sectionA.documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         sections: { populate: { sections: true } },
       })
@@ -104,7 +104,7 @@ describe("get", () => {
         },
       })
 
-      const { populate } = await service.get({ contentType, documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         coolitems: {
           populate: {
@@ -121,7 +121,7 @@ describe("get", () => {
           singleCoolComponent: components.single,
         },
       })
-      const { populate } = await service.get({ contentType, documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         singleCoolComponent: true,
       })
@@ -134,7 +134,7 @@ describe("get", () => {
           singleCoolComponent: components.singleWithNestedSingle,
         },
       })
-      const { populate } = await service.get({ contentType, documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         singleCoolComponent: {
           populate: { specialSingle: true },
@@ -149,7 +149,7 @@ describe("get", () => {
           singleCoolComponent: components.singleWithNestedRepeatable,
         },
       })
-      const { populate } = await service.get({ contentType, documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         singleCoolComponent: {
           populate: { specialRepeatable: true },
@@ -181,7 +181,7 @@ describe("get", () => {
           ],
         },
       })
-      const { populate } = await service.get({ contentType, documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         blocks: {
           on: {
@@ -213,7 +213,7 @@ describe("get", () => {
         },
       })
 
-      const { populate } = await service.get({ contentType, documentId, omitEmpty: true })
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         image: true,
       })
@@ -237,7 +237,7 @@ describe("get", () => {
           ],
         },
       })
-      const { populate } = await service.get({ contentType: "api::section.section", documentId, omitEmpty: true })
+      const populate = await service.get({ contentType: "api::section.section", documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         blocks: {
           on: {
