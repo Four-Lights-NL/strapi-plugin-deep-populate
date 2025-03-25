@@ -1,4 +1,5 @@
 import type { Core, Modules } from "@strapi/strapi"
+import isEmpty from "lodash/isEmpty"
 
 import type { PopulateParams } from "./populate"
 
@@ -14,7 +15,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const entry = await strapi
       .documents("plugin::deep-populate.cache")
       .findFirst({ filters: { hash: { $eq: getHash(params) } } })
-    return entry ? entry.populate : null
+    return entry && !isEmpty(entry.populate) ? entry.populate : null
   },
   async set({ populate, dependencies, ...params }: SetPopulateParams) {
     const documentService = strapi.documents("plugin::deep-populate.cache")
