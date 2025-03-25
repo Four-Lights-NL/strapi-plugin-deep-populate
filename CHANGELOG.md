@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.1] - 2025-03-25
+
+### Fixed
+
+- Fix plugin hanging on simple content-types when caching is enabled ([#53](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/53)) (Thomas Rijpstra)
+
 ## [1.5.0] - 2025-02-13
 
 ### Changed
@@ -108,6 +114,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.5.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.5.1
 
 [1.5.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.5.0
 
