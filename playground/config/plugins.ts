@@ -1,3 +1,3 @@
 export default ({ env }) => ({
-  "deep-populate": {},
+  "deep-populate": { enabled: true },
 })

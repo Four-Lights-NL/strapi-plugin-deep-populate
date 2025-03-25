@@ -6,4 +6,5 @@ export default ({ env }) => ({
       jwtSecret: env("JWT_SECRET", randomBytes(16).toString("base64")),
     },
   },
+  "deep-populate": { enabled: true },
 })
