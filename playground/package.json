@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "A Strapi application",
   "scripts": {
+    "prepare": "cd .. && $npm_execpath run build",
     "develop": "strapi develop",
     "develop:admin": "strapi develop --watch-admin",
     "start": "strapi start",
@@ -11,7 +12,7 @@
     "strapi": "strapi"
   },
   "dependencies": {
-    "@fourlights/strapi-plugin-deep-populate": "file:.yalc/@fourlights/strapi-plugin-deep-populate",
+    "@fourlights/strapi-plugin-deep-populate": "../",
     "@strapi/plugin-users-permissions": "5.8.0",
     "@strapi/strapi": "5.8.0",
     "better-sqlite3": "11.5.0",

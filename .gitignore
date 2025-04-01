@@ -144,5 +144,7 @@ coverage
 # Strapi
 ############################
 .strapi-updater.json
-
+.strapi
+db/
+types/generated/
 

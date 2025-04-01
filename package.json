@@ -24,16 +24,13 @@
     "build": "strapi-plugin build",
     "watch": "strapi-plugin watch",
     "watch:link": "strapi-plugin watch:link",
-    "link": "yalc push --publish",
     "verify": "strapi-plugin verify",
     "test": "npm-run-all --parallel test:*",
     "test:ts:back": "tsc -p server/tsconfig.json",
     "test:integration": "vitest --pool=vmThreads",
     "ci": "biome ci server",
     "release": "release-it",
-    "playground:install": "$npm_execpath run playground:yalc-add && cd playground && $npm_execpath install --loglevel error",
-    "playground:yalc-add": "cd playground && yalc add @fourlights/strapi-plugin-deep-populate",
-    "playground:yalc-add-link": "cd playground && yalc add --link @fourlights/strapi-plugin-deep-populate"
+    "playground:install": "cd playground && $npm_execpath install"
   },
   "dependencies": {
     "lodash": "^4.17.21"
@@ -51,8 +48,7 @@
     "supertest": "^7.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
-    "vitest": "^3.0.5",
-    "yalc": "^1.0.0-pre.53"
+    "vitest": "^3.0.5"
   },
   "peerDependencies": {
     "@strapi/sdk-plugin": "^5",
