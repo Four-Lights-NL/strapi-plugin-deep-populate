@@ -33,7 +33,7 @@ jobs:
         run: npm run verify
 
       - name: Prepare playground
-        run: npx yalc publish && npm run playground:install
+        run: npm run playground:install
 
       - name: Tests
         run: npm run test
