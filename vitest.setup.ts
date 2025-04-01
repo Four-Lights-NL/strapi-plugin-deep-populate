@@ -4,7 +4,7 @@ export default function setup() {
   process.env.NODE_NO_WARNINGS = "1"
   console.log("🔨 Building plugin")
   try {
-    execSync("npm run build && npm run link", {
+    execSync("npm run build", {
       stdio: ["pipe", "pipe", "pipe"],
       encoding: "utf-8",
     })
