@@ -1,0 +1,19 @@
+{
+  "kind": "collectionType",
+  "collectionName": "persons",
+  "info": {
+    "singularName": "person",
+    "pluralName": "persons",
+    "displayName": "Person",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "nam": {
+      "type": "string"
+    }
+  }
+}
