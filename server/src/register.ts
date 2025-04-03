@@ -2,14 +2,14 @@ import type { Core, Schema, UID } from "@strapi/strapi"
 import { sanitize } from "@strapi/utils"
 import cloneDeep from "lodash/cloneDeep"
 
+import has from "lodash/has"
+import isEmpty from "lodash/isEmpty"
+import unset from "lodash/unset"
 import {
   addDeepPopulateCacheFullTextIndex,
   hasDeepPopulateCacheFullTextIndex,
   removeDeepPopulateCacheFullTextIndex,
 } from "./migrations"
-import has from "lodash/has"
-import unset from "lodash/unset"
-import isEmpty from "lodash/isEmpty"
 
 const populateIsWildcardEquivalent = async ({
   strapi,

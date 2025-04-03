@@ -1,8 +1,8 @@
 import type { Core, Modules } from "@strapi/strapi"
 import isEmpty from "lodash/isEmpty"
 
-import type { PopulateParams } from "./populate"
 import has from "lodash/has"
+import type { PopulateParams } from "./populate"
 
 type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
