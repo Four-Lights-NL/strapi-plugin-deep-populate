@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0] - 2025-04-03
+
+### Fixed
+
+- Fix plugin hanging due to internalization quirks ([#59](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/59)) (Thomas Rijpstra)
+- Fix status field not being forwarded properly during resolving ([#59](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/59)) (Thomas Rijpstra)
+- Fix localizations always included regardless of model options ([#59](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/59)) (Thomas Rijpstra)
+
 ## [1.5.1] - 2025-03-25
 
 ### Fixed
@@ -114,6 +122,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.6.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.6.0
 
 [1.5.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.5.1
 
