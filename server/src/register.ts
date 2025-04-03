@@ -7,12 +7,17 @@ import {
   hasDeepPopulateCacheFullTextIndex,
   removeDeepPopulateCacheFullTextIndex,
 } from "./migrations"
+import has from "lodash/has"
+import unset from "lodash/unset"
+import isEmpty from "lodash/isEmpty"
 
 const populateIsWildcardEquivalent = async ({
   strapi,
   schema,
   populate,
 }: { strapi: Core.Strapi; schema: Schema.ContentType; populate: unknown }) => {
+  if (isEmpty(populate)) return false
+
   // NOTE: Strapi does all kinds of magic on the populate object, so we need to check if that's the case
   const expandedWildcardQuery = await sanitize.sanitizers.defaultSanitizePopulate(
     {
