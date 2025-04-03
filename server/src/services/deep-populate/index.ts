@@ -303,12 +303,13 @@ export default async function populate(params: PopulateParams) {
   const { allow, deny } = contentTypeConfig
 
   const resolvedRelations = new Map()
-  const populated = await _populate({
+  const populated = (await _populate({
     ...params,
     schema: params.contentType,
     resolvedRelations,
     __deny: deny,
     __allow: allow,
-  })
+  })) as Record<string, unknown>
+  populated.__deepPopulated = true
   return { populate: populated, dependencies: [...resolvedRelations.keys()] }
 }

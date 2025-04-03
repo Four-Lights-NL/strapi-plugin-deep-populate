@@ -1,10 +1,23 @@
 import type { Schema, UID } from "@strapi/strapi"
 import { contentTypes } from "@strapi/utils"
 
+type PluginOptions = {
+  i18n?: {
+    localized: boolean
+  }
+}
+
 export const getRelations = <TSchema extends UID.Schema>(model: Schema.Schema<TSchema>) => {
   const filteredAttributes = new Set()
 
   const { populateCreatorFields } = contentTypes.getOptions(model) as { populateCreatorFields?: boolean }
+
+  const { pluginOptions } = model as { pluginOptions?: PluginOptions }
+  if (pluginOptions?.i18n?.localized !== true) {
+    filteredAttributes.add("locale")
+    filteredAttributes.add("localizations")
+  }
+
   if (!populateCreatorFields) {
     filteredAttributes.add(contentTypes.constants.CREATED_BY_ATTRIBUTE)
     filteredAttributes.add(contentTypes.constants.UPDATED_BY_ATTRIBUTE)

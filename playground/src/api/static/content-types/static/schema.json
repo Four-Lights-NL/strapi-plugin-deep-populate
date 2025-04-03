@@ -1,0 +1,15 @@
+{
+  "kind": "collectionType",
+  "collectionName": "statics",
+  "info": {
+    "singularName": "static",
+    "pluralName": "statics",
+    "displayName": "Static",
+    "description": ""
+  },
+  "attributes": {
+    "content": {
+      "type": "string"
+    }
+  }
+}

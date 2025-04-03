@@ -35,18 +35,18 @@ describe("get", () => {
 
     test("no relation", async () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({})
+      expect(populate).toStrictEqual({ __deepPopulated: true })
     })
 
     test("relation one level deep", async () => {
       const populate = await service.get({ contentType, documentId: sections[1].documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({ sections: true })
+      expect(populate.sections).toBeTruthy()
     })
 
     test("relation two levels deep", async () => {
       const populate = await service.get({ contentType, documentId: sections[2].documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        sections: { populate: { sections: true } },
+      expect(populate.sections).toStrictEqual({
+        populate: { sections: true },
       })
     })
 
@@ -69,9 +69,7 @@ describe("get", () => {
         >,
       })
       const populate = await service.get({ contentType, documentId: sectionA.documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        sections: { populate: { sections: true } },
-      })
+      expect(populate.sections).toStrictEqual({ populate: { sections: true } })
     })
   })
 
@@ -105,11 +103,9 @@ describe("get", () => {
       })
 
       const populate = await service.get({ contentType, documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        coolitems: {
-          populate: {
-            specialRepeatable: true,
-          },
+      expect(populate.coolitems).toStrictEqual({
+        populate: {
+          specialRepeatable: true,
         },
       })
     })
@@ -122,9 +118,7 @@ describe("get", () => {
         },
       })
       const populate = await service.get({ contentType, documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        singleCoolComponent: true,
-      })
+      expect(populate.singleCoolComponent).toBeTruthy()
     })
 
     test("single component with nested single component", async () => {
@@ -135,10 +129,8 @@ describe("get", () => {
         },
       })
       const populate = await service.get({ contentType, documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        singleCoolComponent: {
-          populate: { specialSingle: true },
-        },
+      expect(populate.singleCoolComponent).toStrictEqual({
+        populate: { specialSingle: true },
       })
     })
 
@@ -150,10 +142,8 @@ describe("get", () => {
         },
       })
       const populate = await service.get({ contentType, documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        singleCoolComponent: {
-          populate: { specialRepeatable: true },
-        },
+      expect(populate.singleCoolComponent).toStrictEqual({
+        populate: { specialRepeatable: true },
       })
     })
 
@@ -182,17 +172,15 @@ describe("get", () => {
         },
       })
       const populate = await service.get({ contentType, documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        blocks: {
-          on: {
-            "cms.cool-component": {
-              populate: {
-                specialSingle: true,
-                specialRepeatable: true,
-              },
+      expect(populate.blocks).toStrictEqual({
+        on: {
+          "cms.cool-component": {
+            populate: {
+              specialSingle: true,
+              specialRepeatable: true,
             },
-            "cms.special": true,
           },
+          "cms.special": true,
         },
       })
     })
@@ -214,9 +202,7 @@ describe("get", () => {
       })
 
       const populate = await service.get({ contentType, documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        image: true,
-      })
+      expect(populate.image).toBeTruthy()
     })
 
     test("should populate in deeply nested components", async () => {
@@ -238,13 +224,11 @@ describe("get", () => {
         },
       })
       const populate = await service.get({ contentType: "api::section.section", documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({
-        blocks: {
-          on: {
-            "cms.slider": {
-              populate: {
-                items: { populate: { image: true } },
-              },
+      expect(populate.blocks).toStrictEqual({
+        on: {
+          "cms.slider": {
+            populate: {
+              items: { populate: { image: true } },
             },
           },
         },

@@ -2,6 +2,9 @@ import type { Core, Schema, UID } from "@strapi/strapi"
 import { sanitize } from "@strapi/utils"
 import cloneDeep from "lodash/cloneDeep"
 
+import has from "lodash/has"
+import isEmpty from "lodash/isEmpty"
+import unset from "lodash/unset"
 import {
   addDeepPopulateCacheFullTextIndex,
   hasDeepPopulateCacheFullTextIndex,
@@ -13,6 +16,8 @@ const populateIsWildcardEquivalent = async ({
   schema,
   populate,
 }: { strapi: Core.Strapi; schema: Schema.ContentType; populate: unknown }) => {
+  if (isEmpty(populate)) return false
+
   // NOTE: Strapi does all kinds of magic on the populate object, so we need to check if that's the case
   const expandedWildcardQuery = await sanitize.sanitizers.defaultSanitizePopulate(
     {
@@ -58,6 +63,7 @@ export default async ({ strapi }) => {
     const { populate } = context.params
     const returnDeeplyPopulated =
       replaceWildcard && (await populateIsWildcardEquivalent({ strapi, schema: context.contentType, populate }))
+    if (has(populate, "__deepPopulated")) unset(populate, "__deepPopulated")
 
     if (useCache && context.action === "delete")
       await cacheService.clear({ ...context.params, contentType: context.uid })
@@ -71,7 +77,8 @@ export default async ({ strapi }) => {
     if (!result) return result
 
     if (["create", "update"].includes(context.action)) {
-      const { documentId, status, locale } = result
+      const { documentId, publishedAt, locale } = result
+      const status = publishedAt !== null ? "published" : "draft"
 
       if (useCache && context.action === "update")
         await cacheService.clear({ ...context.params, contentType: context.uid })
@@ -86,7 +93,8 @@ export default async ({ strapi }) => {
     }
 
     if (returnDeeplyPopulated && ["findOne", "findFirst"].includes(context.action)) {
-      const { documentId, status, locale } = result
+      const { documentId, publishedAt, locale } = result
+      const status = publishedAt !== null ? "published" : "draft"
       const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
       return await strapi
         .documents(context.uid)
@@ -95,7 +103,8 @@ export default async ({ strapi }) => {
 
     if (returnDeeplyPopulated && context.action === "findMany") {
       return await Promise.all(
-        result.map(async ({ documentId, status, locale }) => {
+        result.map(async ({ documentId, publishedAt, locale }) => {
+          const status = publishedAt !== null ? "published" : "draft"
           const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
           return await strapi
             .documents(context.uid)
