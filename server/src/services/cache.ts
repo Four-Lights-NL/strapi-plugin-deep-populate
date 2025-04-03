@@ -2,6 +2,7 @@ import type { Core, Modules } from "@strapi/strapi"
 import isEmpty from "lodash/isEmpty"
 
 import type { PopulateParams } from "./populate"
+import has from "lodash/has"
 
 type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
@@ -10,12 +11,16 @@ const getHash = (params: PopulateParams) => {
   return `${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
 }
 
+const isValid = (entry: Modules.Documents.AnyDocument) => {
+  return entry && !isEmpty(entry.populate) && has(entry.populate, "__deepPopulated")
+}
+
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async get(params: PopulateParams) {
     const entry = await strapi
       .documents("plugin::deep-populate.cache")
       .findFirst({ filters: { hash: { $eq: getHash(params) } } })
-    return entry && !isEmpty(entry.populate) ? entry.populate : null
+    return isValid(entry) ? entry.populate : null
   },
   async set({ populate, dependencies, ...params }: SetPopulateParams) {
     const documentService = strapi.documents("plugin::deep-populate.cache")
