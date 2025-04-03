@@ -1,4 +1,3 @@
-import omit from "lodash/omit"
 import supertest from "supertest"
 import { setupDocuments } from "../../helpers/setupDocuments"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
@@ -34,13 +33,13 @@ describe("api", () => {
       .expect(200)
 
     const expected: Record<string, object> = {}
-    expected.nestedSection = omit(context.nestedSection, ["locale", "localizations"])
+    expected.nestedSection = context.nestedSection
     expected.primarySection = {
-      ...omit(context.primarySection, ["locale", "localizations"]),
+      ...context.primarySection,
       sections: [expected.nestedSection],
     }
     expected.page = {
-      ...omit(context.page, ["locale", "localizations"]),
+      ...context.page,
       sections: [expected.primarySection],
     }
 
