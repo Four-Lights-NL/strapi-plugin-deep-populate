@@ -71,7 +71,8 @@ export default async ({ strapi }) => {
     if (!result) return result
 
     if (["create", "update"].includes(context.action)) {
-      const { documentId, status, locale } = result
+      const { documentId, publishedAt, locale } = result
+      const status = publishedAt !== null ? "published" : "draft"
 
       if (useCache && context.action === "update")
         await cacheService.clear({ ...context.params, contentType: context.uid })
@@ -86,7 +87,8 @@ export default async ({ strapi }) => {
     }
 
     if (returnDeeplyPopulated && ["findOne", "findFirst"].includes(context.action)) {
-      const { documentId, status, locale } = result
+      const { documentId, publishedAt, locale } = result
+      const status = publishedAt !== null ? "published" : "draft"
       const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
       return await strapi
         .documents(context.uid)
@@ -95,7 +97,8 @@ export default async ({ strapi }) => {
 
     if (returnDeeplyPopulated && context.action === "findMany") {
       return await Promise.all(
-        result.map(async ({ documentId, status, locale }) => {
+        result.map(async ({ documentId, publishedAt, locale }) => {
+          const status = publishedAt !== null ? "published" : "draft"
           const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
           return await strapi
             .documents(context.uid)
