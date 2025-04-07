@@ -134,7 +134,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
   // If the lookup contains a `populate`, we're dealing with a component or relation
   if (populateIdx !== -1) {
     const parentLookup = lookup.slice(0, populateIdx)
-    const childLookup = lookup[populateIdx + 1]
+    const childLookup = lookup.slice(populateIdx + 1, lookup.length)
 
     const parentValue = parentLookup.length === 0 ? document : get(document, parentLookup)
     const childValue = (Array.isArray(parentValue) ? parentValue : [parentValue]).map((v) =>
