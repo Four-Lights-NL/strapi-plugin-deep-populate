@@ -173,12 +173,16 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   resolvedRelations.set(params.documentId, true)
 
   // Make sure we retrieve all related objects one level below this on
-  for (const [attrName] of relations) {
+  for (const [attrName, attr] of relations) {
     if (lookup.length > 0) {
       const parent = get(currentPopulate, lookup)
       if (parent === undefined || (parent !== "*" && "populate" in parent && parent.populate === "*"))
         set(currentPopulate, [...lookup, "populate"], {})
-      set(currentPopulate, [...lookup, "populate", attrName], { populate: "*" })
+      set(
+        currentPopulate,
+        [...lookup, "populate", attrName],
+        contentTypes.isMediaAttribute(attr) ? true : { populate: "*" },
+      )
     } else {
       set(currentPopulate, attrName, { populate: "*" })
     }
