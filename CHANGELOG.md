@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1] - 2025-04-07
+
+### Fixed
+
+- Fix deeply nested components not always resolving correctly due to incorrect value determination ([#61](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/61)) (Thomas Rijpstra)
+- Fix media attribute resolving throwing vague exceptions ([#61](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/61)) (Thomas Rijpstra)
+
 ## [1.6.0] - 2025-04-03
 
 ### Fixed
@@ -122,6 +129,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.6.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.6.1
 
 [1.6.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.6.0
 
