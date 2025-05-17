@@ -13,19 +13,19 @@
   },
   "dependencies": {
     "@fourlights/strapi-plugin-deep-populate": "../",
-    "@strapi/plugin-users-permissions": "5.12.1",
-    "@strapi/strapi": "5.8.0",
-    "better-sqlite3": "11.5.0",
+    "@strapi/plugin-users-permissions": "^5.13.0",
+    "@strapi/strapi": "^5.13.0",
+    "better-sqlite3": "^11.10.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
-    "styled-components": "^6.0.0"
+    "styled-components": "^6.1.18"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^22.15.18",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "typescript": "^5"
+    "typescript": "^5.8.3"
   },
   "strapi": {
     "uuid": "2b188734-afc6-4e65-8ea1-3a1b336b1cb6"
