@@ -11,6 +11,11 @@ export default defineConfig({
       forks: {
         singleFork: true,
       },
+      vmForks: {
+        singleFork: false,
+        minForks: 1,
+        maxForks: 1
+      },
       threads: {
         singleThread: true,
       },
