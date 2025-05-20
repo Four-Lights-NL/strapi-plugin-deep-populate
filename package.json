@@ -27,7 +27,7 @@
     "verify": "strapi-plugin verify",
     "test": "npm-run-all --parallel test:*",
     "test:ts:back": "tsc -p server/tsconfig.json",
-    "test:integration": "vitest --pool=vmForks --maxConcurrency 1",
+    "test:integration": "vitest --pool=vmThreads --maxConcurrency 1",
     "ci": "biome ci server",
     "release": "release-it",
     "playground:install": "cd playground && $npm_execpath install"

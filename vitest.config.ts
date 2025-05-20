@@ -18,9 +18,15 @@ export default defineConfig({
       },
       threads: {
         singleThread: true,
+        minThreads: 1,
+        maxThreads: 1,
+        useAtomics: true
       },
       vmThreads: {
         singleThread: true,
+        minThreads: 1,
+        maxThreads: 1,
+        useAtomics: true
       },
     },
     // Cleanup nasty node warnings
