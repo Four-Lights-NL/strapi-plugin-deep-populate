@@ -1,8 +1,10 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import { type Core, compileStrapi, createStrapi } from "@strapi/strapi"
+import { tmpdir } from "node:os"
 
 let instance: Core.Strapi
+let tmpDir: string
 let tmpDbFile: string
 
 const fileExists = async (filePath: string) => {
@@ -21,7 +23,10 @@ const resolve = (basePath: string, ...paths: string[]) => {
 
 export const setupStrapi = async () => {
   if (!instance) {
-    tmpDbFile = `./tmp/${crypto.randomUUID().toString().substring(10)}.db`
+    const systemTempDir = process.env.RUNNER_TEMP ?? tmpdir()
+    tmpDir = await fs.mkdtemp(path.join(systemTempDir, "strapi-plugin-deep-populate"))
+    tmpDbFile = resolve(tmpDir, 'test.db')
+
     process.env.DATABASE_FILENAME = tmpDbFile
     const options = {
       appDir: resolve(process.cwd(), "playground"),
@@ -40,15 +45,8 @@ export const setupStrapi = async () => {
 export const teardownStrapi = async () => {
   if (!instance) return
 
-  instance.server.httpServer.close()
-
-  if (instance.db?.connection) {
-    await instance.db.connection.destroy()
-
-    if (await fileExists(tmpDbFile)) {
-      await fs.unlink(tmpDbFile)
-    }
-  }
+  instance.server.httpServer.close(async () => await fs.unlink(tmpDbFile))
+  instance = null
 }
 
 export { instance as strapi }
