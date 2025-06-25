@@ -1,7 +1,7 @@
 import fs from "node:fs/promises"
+import { tmpdir } from "node:os"
 import path from "node:path"
 import { type Core, compileStrapi, createStrapi } from "@strapi/strapi"
-import { tmpdir } from "node:os"
 
 let instance: Core.Strapi
 let tmpDir: string
@@ -25,7 +25,7 @@ export const setupStrapi = async () => {
   if (!instance) {
     const systemTempDir = process.env.RUNNER_TEMP ?? tmpdir()
     tmpDir = await fs.mkdtemp(path.join(systemTempDir, "strapi-plugin-deep-populate"))
-    tmpDbFile = resolve(tmpDir, 'test.db')
+    tmpDbFile = resolve(tmpDir, "test.db")
 
     process.env.DATABASE_FILENAME = tmpDbFile
     const options = {

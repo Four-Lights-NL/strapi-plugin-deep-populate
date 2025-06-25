@@ -1,4 +1,4 @@
-import { type UserConfig, defineConfig, mergeConfig } from "vite"
+import { defineConfig, mergeConfig, type UserConfig } from "vite"
 
 export default defineConfig((config) => {
   return mergeConfig(config, {

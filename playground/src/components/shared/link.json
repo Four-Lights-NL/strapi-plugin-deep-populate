@@ -17,9 +17,7 @@
     },
     "target": {
       "type": "enumeration",
-      "enum": [
-        "_blank"
-      ]
+      "enum": ["_blank"]
     },
     "isExternal": {
       "type": "boolean",

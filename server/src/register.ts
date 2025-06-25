@@ -15,7 +15,11 @@ const populateIsWildcardEquivalent = async ({
   strapi,
   schema,
   populate,
-}: { strapi: Core.Strapi; schema: Schema.ContentType; populate: unknown }) => {
+}: {
+  strapi: Core.Strapi
+  schema: Schema.ContentType
+  populate: unknown
+}) => {
   if (isEmpty(populate)) return false
 
   // NOTE: Strapi does all kinds of magic on the populate object, so we need to check if that's the case

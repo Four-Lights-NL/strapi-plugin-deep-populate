@@ -1,7 +1,6 @@
 import type { Core, Modules } from "@strapi/strapi"
-import isEmpty from "lodash/isEmpty"
-
 import has from "lodash/has"
+import isEmpty from "lodash/isEmpty"
 import type { PopulateParams } from "./populate"
 
 type SetPopulateParams = PopulateParams &
