@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.2] - 2025-06-25
+
+### Changed
+
+- Use biome v2 ([`a8c759e`](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/commit/a8c759e) [`7eec941`](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/commit/7eec941)) (Thomas Rijpstra)
+- Improve test stability and reliability ([#64](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/64)) (Thomas Rijpstra)
+- Mitigate security vulnerabilities by updating dependencies to latest versions ([`096db68`](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/commit/096db68) [`e313ed6`](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/commit/e313ed6) [#72](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/72) [#71](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/71) [#70](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/70) [#69](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/69) [#67](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/67) [#64](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/64) [#63](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/63)) (Thomas Rijpstra)
+
 ## [1.6.1] - 2025-04-07
 
 ### Fixed
@@ -129,6 +137,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.6.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.6.2
 
 [1.6.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.6.1
 
