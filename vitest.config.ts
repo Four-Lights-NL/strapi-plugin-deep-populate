@@ -10,15 +10,19 @@ export default defineConfig({
     poolOptions: {
       forks: {
         singleFork: true,
+        execArgv: ["--expose-gc"],
       },
       vmForks: {
         singleFork: false,
+        execArgv: ["--expose-gc"],
       },
       threads: {
         singleThread: true,
+        execArgv: ["--expose-gc"],
       },
       vmThreads: {
         singleThread: true,
+        execArgv: ["--expose-gc"],
       },
     },
     // Cleanup nasty node warnings

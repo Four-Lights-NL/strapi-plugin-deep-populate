@@ -197,7 +197,7 @@ describe("lifecycle", () => {
         data: { name: "nestedSection" },
       })
 
-      const parentSection = await strapi.documents(contentType).create({
+      const _parentSection = await strapi.documents(contentType).create({
         data: { name: "parentSection", sections: [nestedSection.documentId] },
       })
 

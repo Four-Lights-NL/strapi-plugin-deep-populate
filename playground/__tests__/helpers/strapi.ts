@@ -7,15 +7,6 @@ let instance: Core.Strapi
 let tmpDir: string
 let tmpDbFile: string
 
-const fileExists = async (filePath: string) => {
-  try {
-    await fs.access(filePath)
-    return true
-  } catch {
-    return false
-  }
-}
-
 const resolve = (basePath: string, ...paths: string[]) => {
   const pathStr = path.join(...paths)
   return path.resolve(basePath.replace(pathStr, ""), pathStr)
@@ -23,6 +14,7 @@ const resolve = (basePath: string, ...paths: string[]) => {
 
 export const setupStrapi = async () => {
   if (!instance) {
+    process.env.STRAPI_TELEMETRY_DISABLED = "1"
     const systemTempDir = process.env.RUNNER_TEMP ?? tmpdir()
     tmpDir = await fs.mkdtemp(path.join(systemTempDir, "strapi-plugin-deep-populate"))
     tmpDbFile = resolve(tmpDir, "test.db")

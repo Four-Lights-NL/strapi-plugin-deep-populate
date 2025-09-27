@@ -111,8 +111,8 @@ async function _populateRelation<TContentType extends UID.ContentType>({
 const _resolveValue = ({ document, lookup, attrName }) => {
   // If the lookup contains an `on`, we're dealing with a dynamic zone
   // and need to resolve the value using the `__component` field
-  const dynamicZoneIdx = Array.isArray(lookup) ? lookup.findIndex((l) => l === "on") : -1
-  const populateIdx = Array.isArray(lookup) ? lookup.findIndex((l) => l === "populate") : -1
+  const dynamicZoneIdx = Array.isArray(lookup) ? lookup.indexOf("on") : -1
+  const populateIdx = Array.isArray(lookup) ? lookup.indexOf("populate") : -1
   if (dynamicZoneIdx !== -1) {
     const dynamicZoneLookup = lookup.slice(0, dynamicZoneIdx)
     const dynamicZoneComponent = lookup[dynamicZoneIdx + 1]
