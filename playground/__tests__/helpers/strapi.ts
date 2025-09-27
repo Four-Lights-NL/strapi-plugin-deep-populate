@@ -7,14 +7,6 @@ let instance: Core.Strapi
 let tmpDir: string
 let tmpDbFile: string
 
-const fileExists = async (filePath: string) => {
-  try {
-    await fs.access(filePath)
-    return true
-  } catch {
-    return false
-  }
-}
 
 const resolve = (basePath: string, ...paths: string[]) => {
   const pathStr = path.join(...paths)
