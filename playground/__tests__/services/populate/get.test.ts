@@ -56,13 +56,13 @@ describe("get", () => {
       const sectionB = await strapi.documents(contentType).create({ data: { name: "section-b", sections: [] } })
 
       // point sectionA to B and vice versa
-      const upa = await strapi.documents(contentType).update({
+      const _upa = await strapi.documents(contentType).update({
         documentId: sectionA.documentId,
         data: { sections: { connect: [sectionB.documentId] } } as Partial<
           Modules.Documents.Params.Data.Input<typeof contentType>
         >,
       })
-      const upb = await strapi.documents(contentType).update({
+      const _upb = await strapi.documents(contentType).update({
         documentId: sectionB.documentId,
         data: { sections: { connect: [sectionA.documentId] } } as Partial<
           Modules.Documents.Params.Data.Input<typeof contentType>
