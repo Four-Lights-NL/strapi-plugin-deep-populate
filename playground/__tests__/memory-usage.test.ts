@@ -24,7 +24,14 @@ describe.sequential("Memory Usage Tests", () => {
       return config
     })
 
-    context = await setupDocuments()
+    // Create a very nested lookup
+    let previousPageId: string
+    for (let idx = 0; idx < 2; idx += 1) {
+      const layerContext = await setupDocuments(previousPageId)
+      previousPageId = layerContext.page.documentId
+    }
+    console.log("Done setting up layers")
+    context = await setupDocuments(previousPageId)
   })
 
   afterAll(async () => {
@@ -39,7 +46,7 @@ describe.sequential("Memory Usage Tests", () => {
     )
 
     // To see the actual memory stats, use:
-    // console.log("Cache-full memory stats", results.stats)
+    console.log("Cache-full memory stats", results.stats)
 
     expect(results.stats.maxHeapUsed).toBeLessThan(40 * 1024 * 1024 /* 40 MiB */)
     expect(results.stats.avgHeapUsed).toBeLessThan(15 * 1024 * 1024 /* 15 MiB */)
@@ -67,7 +74,7 @@ describe.sequential("Memory Usage Tests", () => {
     )
 
     // To see the actual memory stats, use:
-    // console.log("Cache-less memory stats", results.stats)
+    console.log("Cache-less memory stats", results.stats)
 
     expect(results.stats.maxHeapUsed).toBeLessThan(40 * 1024 * 1024 /* 40 MiB */)
     expect(results.stats.avgHeapUsed).toBeLessThan(40 * 1024 * 1024 /* 40 MiB */)
