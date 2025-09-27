@@ -123,9 +123,12 @@ const _resolveValue = ({ document, lookup, attrName }) => {
     }
 
     const dynamicZoneValue = dynamicZoneLookup.length === 0 ? document : get(document, dynamicZoneLookup, [])
-    const componentValue = dynamicZoneValue
-      .filter((b) => b.__component === dynamicZoneComponent)
-      .map((c) => _resolveValue({ document: c, lookup: componentLookup, attrName }))
+    const filteredComponents = dynamicZoneValue.filter((b) => b.__component === dynamicZoneComponent)
+
+    const componentValue = []
+    for (const component of filteredComponents) {
+      componentValue.push(_resolveValue({ document: component, lookup: componentLookup, attrName }))
+    }
 
     // It's possible that the component type is used more often in the dynamic zone, so we try to find one that actually has the requested attribute set
     return (Array.isArray(componentValue) ? componentValue : [componentValue]).find((v) => hasValue(v))
@@ -137,9 +140,12 @@ const _resolveValue = ({ document, lookup, attrName }) => {
     const childLookup = lookup.slice(populateIdx + 1, lookup.length)
 
     const parentValue = parentLookup.length === 0 ? document : get(document, parentLookup)
-    const childValue = (Array.isArray(parentValue) ? parentValue : [parentValue]).map((v) =>
-      _resolveValue({ document: v, lookup: childLookup, attrName }),
-    )
+    const valueArray = Array.isArray(parentValue) ? parentValue : [parentValue]
+    const childValue = []
+
+    for (const value of valueArray) {
+      childValue.push(_resolveValue({ document: value, lookup: childLookup, attrName }))
+    }
 
     // It's possible that multiple components or relations are available, so we try to find one that actually has the requested attribute set
     return childValue.find((v) => hasValue(v))
@@ -148,7 +154,12 @@ const _resolveValue = ({ document, lookup, attrName }) => {
   // Otherwise, we'll just do a normal lookup
   const parentValue = lookup.length === 0 ? document : get(document, lookup)
   if (Array.isArray(parentValue)) {
-    return parentValue.map((v) => v[attrName]).filter((v) => hasValue(v))
+    const parentValues = []
+    for (const value of parentValue) {
+      const attrValue = value[attrName]
+      if (hasValue(attrValue)) parentValues.push(attrValue)
+    }
+    return parentValues
   }
   return parentValue?.[attrName]
 }
@@ -244,10 +255,13 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   // Construct actual populate
   for (const [attrName, attr, value] of resolveRelations) {
     if (contentTypes.isDynamicZoneAttribute(attr)) {
-      const relComponents = (value as Data.Component[]).map(
-        (dataComponent) =>
-          attr.components.find((schemaComponent) => schemaComponent === dataComponent.__component) as UID.Component,
-      )
+      const relComponents = []
+      for (const dataComponent of value) {
+        const component = attr.components.find(
+          (schemaComponent) => schemaComponent === (dataComponent as Data.Component).__component,
+        ) as UID.Component | undefined
+        if (component) relComponents.push(component)
+      }
 
       newPopulate[attrName] = await _populateDynamicZone({
         contentType,
