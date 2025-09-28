@@ -5,20 +5,25 @@ export default defineConfig({
     include: ["playground/__tests__/**/*.{test,spec}.{js,ts,jsx,tsx}"],
     environment: "node",
     globals: true,
-    testTimeout: 20000,
+    testTimeout: 60000,
+    hookTimeout: 30000,
     isolate: false,
     poolOptions: {
       forks: {
         singleFork: true,
+        execArgv: ["--expose-gc"],
       },
       vmForks: {
         singleFork: false,
+        execArgv: ["--expose-gc"],
       },
       threads: {
         singleThread: true,
+        execArgv: ["--expose-gc"],
       },
       vmThreads: {
         singleThread: true,
+        execArgv: ["--expose-gc"],
       },
     },
     // Cleanup nasty node warnings

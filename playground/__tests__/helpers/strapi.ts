@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs"
 import fs from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
@@ -7,15 +8,6 @@ let instance: Core.Strapi
 let tmpDir: string
 let tmpDbFile: string
 
-const fileExists = async (filePath: string) => {
-  try {
-    await fs.access(filePath)
-    return true
-  } catch {
-    return false
-  }
-}
-
 const resolve = (basePath: string, ...paths: string[]) => {
   const pathStr = path.join(...paths)
   return path.resolve(basePath.replace(pathStr, ""), pathStr)
@@ -23,6 +15,7 @@ const resolve = (basePath: string, ...paths: string[]) => {
 
 export const setupStrapi = async () => {
   if (!instance) {
+    process.env.STRAPI_TELEMETRY_DISABLED = "1"
     const systemTempDir = process.env.RUNNER_TEMP ?? tmpdir()
     tmpDir = await fs.mkdtemp(path.join(systemTempDir, "strapi-plugin-deep-populate"))
     tmpDbFile = resolve(tmpDir, "test.db")
@@ -45,8 +38,57 @@ export const setupStrapi = async () => {
 export const teardownStrapi = async () => {
   if (!instance) return
 
-  instance.server.httpServer.close(async () => await fs.unlink(tmpDbFile))
-  instance = null
+  // 0. Cancel ALL node-schedule jobs aggressively
+  try {
+    const schedule = require("node-schedule")
+    const jobs = schedule.scheduledJobs
+    Object.keys(jobs).forEach((name) => {
+      jobs[name].cancel(true) // Force cancel
+      delete jobs[name]
+    })
+    schedule.gracefulShutdown?.()
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    schedule.destroy()
+  } catch (e) {
+    /* noop */
+  }
+
+  try {
+    // 1. Stop HTTP server first (promisify the callback)
+    if (instance.server?.httpServer) {
+      await new Promise<void>((resolve) => {
+        instance.server.httpServer.close(() => {
+          resolve()
+        })
+      })
+    }
+
+    // 2. Destroy Strapi server components
+    if (instance.server?.destroy) {
+      await instance.server.destroy()
+    }
+
+    // 3. Close database connections
+    if (instance.db?.connection) {
+      await instance.db.connection.destroy()
+    }
+
+    // 4. Destroy database instance
+    if (instance.db?.destroy) {
+      await instance.db.destroy()
+    }
+
+    // 5. Clean up temp files
+    if (existsSync(tmpDbFile)) {
+      await fs.unlink(tmpDbFile)
+    }
+
+    // 6. Clear instance reference
+    instance = null
+  } catch (_error) {
+    // Still clear the instance to prevent reuse
+    instance = null
+  }
 }
 
 export { instance as strapi }

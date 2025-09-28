@@ -1,6 +1,6 @@
 import type { Data } from "@strapi/strapi"
 
-export const setupDocuments = async () => {
+export const setupDocuments = async (linkToPageId?: string) => {
   const nestedSection = {
     input: {
       name: "Nested Section",
@@ -35,6 +35,8 @@ export const setupDocuments = async () => {
     },
     output: {} as Data.ContentType<"api::section.section">,
   }
+  if (linkToPageId) nestedSection.input.blocks.push({ __component: "shared.link" as const, page: linkToPageId } as any)
+
   nestedSection.output = await strapi.documents("api::section.section").create({
     data: nestedSection.input,
     populate: {

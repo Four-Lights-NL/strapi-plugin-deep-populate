@@ -32,8 +32,5 @@
     "vite": "$vite",
     "@strapi/strapi": "$@strapi/strapi",
     "esbuild": "^0.25.0"
-  },
-  "strapi": {
-    "uuid": "2b188734-afc6-4e65-8ea1-3a1b336b1cb6"
   }
 }
