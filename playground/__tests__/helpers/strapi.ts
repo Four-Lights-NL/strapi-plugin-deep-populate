@@ -5,7 +5,7 @@ import path from "node:path"
 import type { Config } from "@fourlights/strapi-plugin-deep-populate/dist/server/src/config/index"
 import { type Core, compileStrapi, createStrapi } from "@strapi/strapi"
 import { isEmpty, merge } from "lodash"
-import { vi } from 'vitest'
+import { vi } from "vitest"
 
 let instance: Core.Strapi
 let tmpDir: string
