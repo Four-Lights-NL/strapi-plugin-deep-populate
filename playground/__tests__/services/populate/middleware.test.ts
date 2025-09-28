@@ -1,4 +1,5 @@
 import type { Core, Data, Modules } from "@strapi/strapi"
+import { allowCyclicContentType } from "../../helpers/allowCyclicContentType"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 
 const mockDate = "2025-01-01T12:00:00.000Z"
@@ -33,13 +34,17 @@ const getDeeplyPopulated = ({ id, documentId, name, sections = [] }) => ({
 
 describe("lifecycle", () => {
   const contentType = "api::section.section" as const
+  // NOTE: The `section` content-type can point to itself, which will not resolve by default.
+  // To allow that, we need to configure the plugin accordingly
+  const deepPopulateConfig = allowCyclicContentType(contentType)
+
   const OriginalDate = Date
 
   const sections: Record<string, Modules.Documents.AnyDocument> = {}
   const expected: Record<string, object> = {}
 
   beforeAll(async () => {
-    await setupStrapi()
+    await setupStrapi(deepPopulateConfig)
 
     global.Date = class extends OriginalDate {
       constructor() {
@@ -80,6 +85,7 @@ describe("lifecycle", () => {
 
   afterAll(async () => {
     await teardownStrapi()
+
     global.Date = OriginalDate
   })
 

@@ -1,13 +1,17 @@
 import type { Core, Modules } from "@strapi/strapi"
+import { allowCyclicContentType } from "../../helpers/allowCyclicContentType"
 import { cleanImages, uploadImage } from "../../helpers/files"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 
 describe("get", () => {
   let service: Core.Service
   const contentType = "api::section.section" as const
+  // NOTE: The `section` content-type can point to itself, which will not resolve by default.
+  // To allow that, we need to configure the plugin accordingly
+  const deepPopulateConfig = allowCyclicContentType(contentType)
 
   beforeAll(async () => {
-    await setupStrapi()
+    await setupStrapi(deepPopulateConfig)
 
     service = strapi.plugin("deep-populate").service("populate")
   })

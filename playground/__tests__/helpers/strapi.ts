@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 import type { Config } from "@fourlights/strapi-plugin-deep-populate/dist/server/src/config/index"
 import { type Core, compileStrapi, createStrapi } from "@strapi/strapi"
-import { merge } from "lodash"
+import { isEmpty, merge } from "lodash"
 import { vi } from 'vitest'
 
 let instance: Core.Strapi
@@ -37,16 +37,19 @@ export const setupStrapi = async (pluginConfig: Partial<Config> = {}) => {
   }
 
   // Allow overriding the plugin config per test
-  const originalConfigGet = strapi.config.get
-  const configSpy = vi.spyOn(strapi.config, "get")
-  configSpy.mockImplementation((key, defaultValue) => {
-    const config = originalConfigGet.call(strapi.config, key, defaultValue)
-    if (key === "plugin::deep-populate") {
-      return merge({}, config, pluginConfig)
-    }
-    return config
-  })
-  return { instance, configSpy }
+  if (!isEmpty(pluginConfig)) {
+    const originalConfigGet = strapi.config.get
+    const configSpy = vi.spyOn(strapi.config, "get")
+    configSpy.mockImplementation((key, defaultValue) => {
+      const config = originalConfigGet.call(strapi.config, key, defaultValue)
+      if (key === "plugin::deep-populate") {
+        return merge({}, config, pluginConfig)
+      }
+      return config
+    })
+    return { instance, configSpy }
+  }
+  return { instance }
 }
 
 export const teardownStrapi = async () => {
