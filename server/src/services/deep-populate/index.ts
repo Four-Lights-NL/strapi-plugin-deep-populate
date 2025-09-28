@@ -218,10 +218,10 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         newPopulate[attrName] = true
         continue
       }
-      
+
       // Do not allow populating if the relation's content-type is the same as the initialContentType,
       // unless the initialContentType it's a self-referencing content-type
-      if (contentType !== initialContentType && attr.target as UID.ContentType === initialContentType) {
+      if (contentType !== initialContentType && (attr.target as UID.ContentType) === initialContentType) {
         newPopulate[attrName] = true
         continue
       }
