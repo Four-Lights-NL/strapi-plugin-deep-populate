@@ -154,6 +154,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
 }
 
 async function _populate<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
+  initialContentType,
   contentType,
   schema,
   populate = {},
@@ -212,11 +213,20 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
     }
 
     if (contentTypes.isRelationalAttribute(attr)) {
+      // Do not allow populating if there is an allow list and the relation's content-type is not part of that
       if (__allow?.relations && !__allow.relations.includes(attr.target as UID.ContentType)) {
         newPopulate[attrName] = true
         continue
       }
+      
+      // Do not allow populating if the relation's content-type is the same as the initialContentType,
+      // unless the initialContentType it's a self-referencing content-type
+      if (contentType !== initialContentType && attr.target as UID.ContentType === initialContentType) {
+        newPopulate[attrName] = true
+        continue
+      }
 
+      // Do not allow populating if the relation's content-type is on the deny list
       if (__deny?.relations?.includes(attr.target as UID.ContentType)) {
         newPopulate[attrName] = true
         continue
@@ -250,6 +260,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
       )
 
       newPopulate[attrName] = await _populateDynamicZone({
+        initialContentType,
         contentType,
         components: relComponents,
         lookup,
@@ -264,6 +275,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
     if (contentTypes.isRelationalAttribute(attr)) {
       newPopulate[attrName] = await _populateRelation({
+        initialContentType,
         contentType: attr.target as UID.ContentType,
         relation: value,
         resolvedRelations,
@@ -278,6 +290,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
     if (contentTypes.isComponentAttribute(attr) && !contentTypes.isDynamicZoneAttribute(attr)) {
       newPopulate[attrName] = await _populateComponent({
+        initialContentType,
         contentType,
         schema: attr.component as UID.Component,
         lookup,
@@ -310,6 +323,7 @@ export default async function populate(params: PopulateParams) {
   const populated = (await _populate({
     ...params,
     schema: params.contentType,
+    initialContentType: params.contentType,
     resolvedRelations,
     __deny: deny,
     __allow: allow,

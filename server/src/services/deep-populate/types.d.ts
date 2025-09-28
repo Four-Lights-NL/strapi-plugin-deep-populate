@@ -4,6 +4,7 @@ import type { ContentTypeConfigAllow, ContentTypeConfigDeny } from "../../config
 type PopulateType = Record<string, "*" | { populate: unknown } | { on: Record<`${string}.${string}`, unknown> }> | true
 
 type PopulateInternalProps = {
+  initialContentType: UID.ContentType
   resolvedRelations: Map<string, PopulateType>
   omitEmpty?: boolean
   localizations?: boolean
@@ -37,7 +38,9 @@ export type PopulateRelationProps<TContentType extends UID.ContentType> = Popula
 
 export type PopulateProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = Omit<
   PopulateBaseProps<TContentType, TSchema>,
-  "resolvedRelations"
+  "resolvedRelations",
+  "initialContentType"
 > & {
   resolvedRelations?: Map<string, PopulateType>
+  initialContentType?: UID.ContentType
 }
