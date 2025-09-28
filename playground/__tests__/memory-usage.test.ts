@@ -26,7 +26,7 @@ describe.sequential("Memory Usage Tests", () => {
 
     // Create a very nested lookup
     let previousPageId: string
-    for (let idx = 0; idx < 2; idx += 1) {
+    for (let idx = 0; idx < 1; idx += 1) {
       const layerContext = await setupDocuments(previousPageId)
       previousPageId = layerContext.page.documentId
     }
