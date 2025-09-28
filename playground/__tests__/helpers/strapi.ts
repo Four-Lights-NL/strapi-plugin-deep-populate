@@ -2,7 +2,10 @@ import { existsSync } from "node:fs"
 import fs from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import type { Config } from "@fourlights/strapi-plugin-deep-populate/dist/server/src/config/index"
 import { type Core, compileStrapi, createStrapi } from "@strapi/strapi"
+import { merge } from "lodash"
+import { vi } from 'vitest'
 
 let instance: Core.Strapi
 let tmpDir: string
@@ -13,7 +16,7 @@ const resolve = (basePath: string, ...paths: string[]) => {
   return path.resolve(basePath.replace(pathStr, ""), pathStr)
 }
 
-export const setupStrapi = async () => {
+export const setupStrapi = async (pluginConfig: Partial<Config> = {}) => {
   if (!instance) {
     process.env.STRAPI_TELEMETRY_DISABLED = "1"
     const systemTempDir = process.env.RUNNER_TEMP ?? tmpdir()
@@ -32,7 +35,18 @@ export const setupStrapi = async () => {
     instance = await createStrapi(options).load()
     instance.server.mount()
   }
-  return instance
+
+  // Allow overriding the plugin config per test
+  const originalConfigGet = strapi.config.get
+  const configSpy = vi.spyOn(strapi.config, "get")
+  configSpy.mockImplementation((key, defaultValue) => {
+    const config = originalConfigGet.call(strapi.config, key, defaultValue)
+    if (key === "plugin::deep-populate") {
+      return merge({}, config, pluginConfig)
+    }
+    return config
+  })
+  return { instance, configSpy }
 }
 
 export const teardownStrapi = async () => {
@@ -49,7 +63,7 @@ export const teardownStrapi = async () => {
     schedule.gracefulShutdown?.()
     await new Promise((resolve) => setTimeout(resolve, 1000))
     schedule.destroy()
-  } catch (e) {
+  } catch (_e) {
     /* noop */
   }
 
