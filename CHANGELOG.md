@@ -1,10 +1,10 @@
 # Changelog
 
-## [1.7.0] - 2025-09-28
+## [1.7.0] - 2025-10-03
 
 ### Breaking Changes
 
-- Populate now stops revisiting the content type it started from unless that content type is self-referencing, so projects that depended on the wider traversal should add allow-list overrides ([#81](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/81)) (Thomas Rijpstra)
+- Populate now stops revisiting the content type where the relation originated that content type is self-referencing, so projects that depended on the wider traversal should add allow-list overrides ([#83](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/83)) (Thomas Rijpstra)
 
 ### Improvements
 
@@ -17,7 +17,7 @@
 
 ### Bug Fixes
 
-- Eliminated the runaway recursion that previously re-entered the starting content type, preventing out of memory and unresponsive requests ([#81](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/81)) (Thomas Rijpstra)
+- Eliminated the runaway recursion that previously re-entered the starting content type, preventing out of memory and unresponsive requests ([#81](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/83)) (Thomas Rijpstra)
 
 ## [1.6.2] - 2025-06-25
 
