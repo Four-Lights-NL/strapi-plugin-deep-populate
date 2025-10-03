@@ -9,7 +9,8 @@
   },
   "github": {
     "release": true,
-    "assets": "*.tgz"
+    "assets": "*.tgz",
+    "releaseNotes": "node ./scripts/extract-changelog.mjs ${version}"
   },
   "npm": {
     "publish": true

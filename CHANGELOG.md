@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.7.0] - 2025-10-03
+
+### Breaking Changes
+
+- Populate now stops revisiting the content type where the relation originated that content type is self-referencing, so projects that depended on the wider traversal should add allow-list overrides ([#83](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/83)) (Thomas Rijpstra)
+
+### Improvements
+
+- Reduced array lookup overhead inside populate logic to keep deep queries responsive ([#79](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/79)) (Thomas Rijpstra)
+- Expanded memory-stress coverage and overall test reliance ([#79](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/79)) (Thomas Rijpstra)
+
+### Security Updates
+
+- Updated dependencies across the plugin, playground, and test harness to pull in upstream security patches ([#74](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/74), [#75](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/75), [#76](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/76), [#77](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/77)) (Thomas Rijpstra)
+
+### Bug Fixes
+
+- Eliminated the runaway recursion that previously re-entered the starting content type, preventing out of memory and unresponsive requests ([#81](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/83)) (Thomas Rijpstra)
+
 ## [1.6.2] - 2025-06-25
 
 ### Changed
@@ -137,6 +156,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.7.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.7.0
 
 [1.6.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.6.2
 
