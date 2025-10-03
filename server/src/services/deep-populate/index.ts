@@ -1,4 +1,4 @@
-import type { Data, UID } from "@strapi/strapi"
+import type { Data, Schema, UID } from "@strapi/strapi"
 import { contentTypes } from "@strapi/utils"
 
 import cloneDeep from "lodash/cloneDeep"
@@ -7,7 +7,7 @@ import has from "lodash/has"
 import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
-import type { Config } from "../../config"
+import type { Config, ContentTypeConfigAllow } from "../../config"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 import { getRelations, hasValue, isEmpty } from "./utils"
@@ -80,7 +80,9 @@ async function _populateRelation<TContentType extends UID.ContentType>({
   const relations = isSingleRelation ? [relation] : relation
 
   // Forward pass to prevent circular references
-  const nonResolvedRelations = relations.filter(({ documentId }) => !resolvedRelations.has(documentId))
+  const nonResolvedRelations = relations.filter(
+    ({ documentId }) => !resolvedRelations.has(documentId) && !resolvedRelations.has(contentType),
+  )
   for (const relation of nonResolvedRelations) {
     resolvedRelations.set(relation.documentId, {})
 
@@ -153,6 +155,29 @@ const _resolveValue = ({ document, lookup, attrName }) => {
   return parentValue?.[attrName]
 }
 
+function shouldMarkContentTypeAsResolved(
+  contentType: UID.ContentType,
+  __allow: ContentTypeConfigAllow,
+  relations: [string, Schema.Attribute.AnyAttribute][],
+) {
+  // Do not mark if explicitly allowed
+  if ((__allow?.relations ?? []).includes(contentType)) return false
+
+  // If the relation has "ordering", it means that it's ManyToOne and
+  // ManyToMany.  That can result in a fully connected graph, which in turn
+  // results in unlimited lookups.  To prevent this, we mark the current
+  // content type as 'resolved' if we encounter such a relation, unless it's
+  // a self-referential content-type
+  return (
+    relations.filter(
+      ([_attrName, attr]) =>
+        contentTypes.isRelationalAttribute(attr) &&
+        contentTypes.hasRelationReordering(attr) &&
+        (attr.target as UID.ContentType) !== contentType,
+    ).length > 0
+  )
+}
+
 async function _populate<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
   contentType,
   schema,
@@ -195,6 +220,11 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   })) as Data.Entity<TContentType>
 
   currentPopulate = null
+
+  // Prevent infinite lookups
+  if (shouldMarkContentTypeAsResolved(contentType, __allow, relations)) {
+    resolvedRelations.set(contentType, true)
+  }
 
   // Filter relations on actual value and optional allowing or denying
   const resolveRelations = []
