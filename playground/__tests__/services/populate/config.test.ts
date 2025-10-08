@@ -1,4 +1,4 @@
-import type { Data, UID } from "@strapi/strapi"
+import type { Core, Data, Modules, UID } from "@strapi/strapi"
 import { setupDocuments } from "../../helpers/setupDocuments"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 import type { UnwrapPromise } from "../../helpers/unwrapPromise"
@@ -14,7 +14,9 @@ describe("config", () => {
   let originalConfigGet: typeof strapi.config.get
   let configSpy: ReturnType<typeof vitest.spyOn>
 
-  const configContentTypes: Record<UID.ContentType, unknown> = {}
+  const configContentTypes: Record<UID.ContentType, any> = {}
+  let omitEmpty: boolean | undefined
+  let localizations: boolean | undefined
 
   beforeAll(async () => {
     await setupStrapi()
@@ -22,12 +24,13 @@ describe("config", () => {
     originalConfigGet = strapi.config.get
     configSpy = vitest.spyOn(strapi.config, "get")
     configSpy.mockImplementation((key) => {
-      const config = { ...originalConfigGet.call(strapi.config, key), useCache: false }
-      if (key === "plugin::deep-populate")
+      const config = { ...originalConfigGet.call(strapi.config, key), useCache: false, localizations, omitEmpty }
+      if (key === "plugin::deep-populate") {
         return {
           ...(config as object),
           contentTypes: configContentTypes,
         }
+      }
       return config
     })
 
@@ -135,6 +138,106 @@ describe("config", () => {
         ...context.sectionWithLink,
         blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
       })
+    })
+  })
+
+  describe("omitEmpty", async () => {
+    let service: Core.Service
+    const sections: Modules.Documents.AnyDocument[] = []
+
+    beforeAll(async () => {
+      sections.push(await strapi.documents(contentType).create({ data: { name: "relations-one" } }))
+      service = strapi.plugin("deep-populate").service("populate")
+    })
+
+    beforeEach(() => {
+      localizations = undefined
+      omitEmpty = undefined
+
+      Object.keys(configContentTypes).map((k) => delete configContentTypes[k])
+    })
+
+    test("should not omitEmpty attributes when false", async () => {
+      omitEmpty = false
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId })
+      expect(populate).toStrictEqual({ __deepPopulated: true, image: true, localizations: true, members: true, sections: true })
+    })
+
+    test("should omitEmpty attributes when true", async () => {
+      omitEmpty = true
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId })
+      expect(populate).toStrictEqual({ __deepPopulated: true })
+    })
+
+    test("should be overriden by function params", async () => {
+      omitEmpty = false
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
+      expect(populate).toStrictEqual({ __deepPopulated: true })
+    })
+
+    test("should be overriden by content type omitEmpty", async () => {
+      omitEmpty = false
+      configContentTypes[contentType] = { omitEmpty: true }
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId })
+      expect(populate).toStrictEqual({ __deepPopulated: true })
+    })
+  })
+
+  describe("localizations", async () => {
+    let service: Core.Service
+    const sections: Modules.Documents.AnyDocument[] = []
+
+    beforeAll(async () => {
+      sections.push(await strapi.documents(contentType).create({ data: { name: "relations-one" } }))
+      service = strapi.plugin("deep-populate").service("populate")
+    })
+
+    beforeEach(() => {
+      localizations = undefined
+      omitEmpty = undefined
+
+      Object.keys(configContentTypes).map((k) => delete configContentTypes[k])
+    })
+
+    test("should exclude localizations when false", async () => {
+      localizations = false
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId })
+      expect(populate).toStrictEqual({ __deepPopulated: true, image: true, members: true, sections: true })
+    })
+
+    test("should include localizations when true", async () => {
+      localizations = true
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId })
+      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true, image: true, members: true, sections: true })
+    })
+
+    test("should be overriden by function param", async () => {
+      localizations = false
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId, localizations: true })
+      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true, image: true, members: true, sections: true })
+    })
+
+    test("should be overriden by content type localizations configuration", async () => {
+      localizations = false
+      configContentTypes[contentType] = { localizations: true }
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId })
+      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true, image: true, members: true, sections: true })
+    })
+
+    test("should include localizations when true, regardless of omitEmpty", async () => {
+      localizations = true
+      omitEmpty = true
+
+      const populate = await service.get({ contentType, documentId: sections[0].documentId })
+      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true })
     })
   })
 })

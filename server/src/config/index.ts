@@ -12,7 +12,9 @@ export type ContentTypeConfigDeny = {
   components?: UID.Component[]
 }
 
-type ContentTypeConfig = {
+export type ContentTypeConfig = {
+  omitEmpty?: boolean
+  localizations?: boolean
   allow?: ContentTypeConfigAllow
   deny?: ContentTypeConfigDeny
 }
@@ -20,6 +22,8 @@ type ContentTypeConfig = {
 export type Config = {
   useCache: boolean
   replaceWildcard: boolean
+  omitEmpty?: boolean
+  localizations?: boolean
   contentTypes: Partial<Record<UID.ContentType | "*", ContentTypeConfig>>
 }
 
