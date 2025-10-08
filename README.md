@@ -65,6 +65,88 @@ const document = await strapi.documents('api::page.page').findOne({
 });
 ```
 
+### omitEmpty and localizations
+
+The plugin provides fine-grained control over which attributes are included in the populate object through `omitEmpty` and `localizations` options.
+
+#### Global Configuration
+
+Set default behavior for all content types:
+
+```js
+// config/plugins.js
+module.exports = ({ env }) => ({
+  'deep-populate': {
+    enabled: true,
+    config: {
+      useCache: true,
+      replaceWildcard: true,
+      omitEmpty: true, // Omit empty attributes by default
+      localizations: false, // Exclude localizations by default
+    }
+  }
+});
+```
+
+#### Content-Type Specific Configuration
+
+Override global settings for specific content types:
+
+```js
+// config/plugins.js
+module.exports = ({ env }) => ({
+  'deep-populate': {
+    enabled: true,
+    config: {
+      useCache: true,
+      replaceWildcard: true,
+      omitEmpty: true,
+      localizations: false,
+      
+      contentTypes: {
+        'api::page.page': {
+          omitEmpty: false, // Include all attributes for pages
+          localizations: true, // Always include localizations for pages
+        },
+        'api::blog-post.blog-post': {
+          omitEmpty: true, // Explicitly omit empty attributes
+          localizations: true, // But include localizations for blog posts
+        }
+      }
+    }
+  }
+});
+```
+
+#### Function Parameter Configuration
+
+Override both global and content-type settings per request:
+
+```ts
+// Get populate object with custom settings
+const populate = await strapi.plugin("deep-populate")
+  .service("populate")
+  .get({
+    documentId: 'xyz',
+    contentType: 'api::page.page',
+    omitEmpty: true, // Override content-type setting
+    localizations: false // Override content-type setting
+  });
+```
+
+#### Override Priority
+
+Settings are applied in the following priority order (highest to lowest):
+1. **Function parameters** - Passed directly to the `get()` method
+2. **Content-type configuration** - Specific to the content type
+3. **Global configuration** - Default plugin settings
+
+#### Special Behavior
+
+- When `localizations: true`, the localizations field will be included even if `omitEmpty: true`
+- When `localizations: false`, localizations are excluded regardless of the `omitEmpty` setting
+- The `localizations` option only affects content types that have i18n enabled
+
 ### Caching
 
 The plugin caches populate objects to improve performance. Cache can be disabled via the `useCache` setting.
