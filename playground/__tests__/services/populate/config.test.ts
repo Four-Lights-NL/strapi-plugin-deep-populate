@@ -161,7 +161,13 @@ describe("config", () => {
       omitEmpty = false
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
-      expect(populate).toStrictEqual({ __deepPopulated: true, image: true, localizations: true, members: true, sections: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        image: true,
+        localizations: true,
+        members: true,
+        sections: true,
+      })
     })
 
     test("should omitEmpty attributes when true", async () => {
@@ -214,14 +220,26 @@ describe("config", () => {
       localizations = true
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
-      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true, image: true, members: true, sections: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        localizations: true,
+        image: true,
+        members: true,
+        sections: true,
+      })
     })
 
     test("should be overriden by function param", async () => {
       localizations = false
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId, localizations: true })
-      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true, image: true, members: true, sections: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        localizations: true,
+        image: true,
+        members: true,
+        sections: true,
+      })
     })
 
     test("should be overriden by content type localizations configuration", async () => {
@@ -229,7 +247,13 @@ describe("config", () => {
       configContentTypes[contentType] = { localizations: true }
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
-      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true, image: true, members: true, sections: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        localizations: true,
+        image: true,
+        members: true,
+        sections: true,
+      })
     })
 
     test("should include localizations when true, regardless of omitEmpty", async () => {

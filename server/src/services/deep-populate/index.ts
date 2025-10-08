@@ -237,7 +237,8 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
       // keep empty localizations when requested
       if (attrName === "localizations" && params.localizations === true) newPopulate[attrName] = true
       // keep empty localizations if not omitEmpty and not specifically asked to do anything with localizations
-      if (omitEmpty !== true && attrName === "localizations" && params.localizations !== false) newPopulate[attrName] = true
+      if (omitEmpty !== true && attrName === "localizations" && params.localizations !== false)
+        newPopulate[attrName] = true
 
       continue
     }
