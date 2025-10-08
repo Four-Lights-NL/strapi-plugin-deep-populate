@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.7.0] - 2025-10-03
+## [1.7.0] - 2025-10-08
 
 ### Breaking Changes
 
@@ -10,6 +10,7 @@
 
 - Reduced array lookup overhead inside populate logic to keep deep queries responsive ([#79](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/79)) (Thomas Rijpstra)
 - Expanded memory-stress coverage and overall test reliance ([#79](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/79)) (Thomas Rijpstra)
+- Add flag to control if localizations should be populated ([#85](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/85)) (Thomas Rijpstra)
 
 ### Security Updates
 
