@@ -232,7 +232,14 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
     const value = _resolveValue({ document, attrName, lookup })
 
     if (!hasValue(value)) {
-      if (omitEmpty !== true) newPopulate[attrName] = true
+      // keep empty attributes if requested
+      if (omitEmpty !== true && attrName !== "localizations") newPopulate[attrName] = true
+      // keep empty localizations when requested
+      if (attrName === "localizations" && params.localizations === true) newPopulate[attrName] = true
+      // keep empty localizations if not omitEmpty and not specifically asked to do anything with localizations
+      if (omitEmpty !== true && attrName === "localizations" && params.localizations !== false)
+        newPopulate[attrName] = true
+
       continue
     }
 
@@ -329,7 +336,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 }
 
 export default async function populate(params: PopulateParams) {
-  const { contentTypes } = strapi.config.get("plugin::deep-populate") as Config
+  const { omitEmpty, localizations, contentTypes } = strapi.config.get("plugin::deep-populate") as Config
   const contentTypeConfig = has(contentTypes, "*") ? get(contentTypes, "*") : {}
   if (has(contentTypes, params.contentType)) {
     mergeWith(contentTypeConfig, get(contentTypes, params.contentType))
@@ -338,11 +345,13 @@ export default async function populate(params: PopulateParams) {
 
   const resolvedRelations = new Map()
   const populated = (await _populate({
-    ...params,
+    omitEmpty: contentTypeConfig.omitEmpty ?? omitEmpty,
+    localizations: contentTypeConfig.localizations ?? localizations,
     schema: params.contentType,
     resolvedRelations,
     __deny: deny,
     __allow: allow,
+    ...params,
   })) as Record<string, unknown>
   populated.__deepPopulated = true
   return { populate: populated, dependencies: [...resolvedRelations.keys()] }
