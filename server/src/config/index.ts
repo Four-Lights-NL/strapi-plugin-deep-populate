@@ -20,7 +20,7 @@ type ContentTypeConfig = {
 export type Config = {
   useCache: boolean
   replaceWildcard: boolean
-  contentTypes: Record<UID.ContentType | "*", ContentTypeConfig>
+  contentTypes: Partial<Record<UID.ContentType | "*", ContentTypeConfig>>
 }
 
 export default {
