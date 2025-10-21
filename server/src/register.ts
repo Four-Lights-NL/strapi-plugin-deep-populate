@@ -99,7 +99,13 @@ export default async ({ strapi }) => {
     if (returnDeeplyPopulated && ["findOne", "findFirst"].includes(context.action)) {
       const { documentId, publishedAt, locale } = result
       const status = publishedAt !== null ? "published" : "draft"
-      const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
+      const deepPopulate = await populateService.get({
+        contentType: context.uid,
+        documentId,
+        status,
+        locale,
+        bustCache: context.params.bustCache,
+      })
       return await strapi
         .documents(context.uid)
         .findOne({ documentId, status, locale, fields: originalFields, populate: deepPopulate })
@@ -109,7 +115,13 @@ export default async ({ strapi }) => {
       return await Promise.all(
         result.map(async ({ documentId, publishedAt, locale }) => {
           const status = publishedAt !== null ? "published" : "draft"
-          const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
+          const deepPopulate = await populateService.get({
+            contentType: context.uid,
+            documentId,
+            status,
+            locale,
+            bustCache: context.params.bustCache,
+          })
           return await strapi
             .documents(context.uid)
             .findOne({ documentId, status, locale, fields: originalFields, populate: deepPopulate })
