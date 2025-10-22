@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Add bust cache param to force cache invalidation ([#87](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/87)) (Thomas Rijpstra)
+
 ## [1.7.0] - 2025-10-08
 
 ### Breaking Changes
