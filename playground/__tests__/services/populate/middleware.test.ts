@@ -219,5 +219,25 @@ describe("lifecycle", () => {
       clearCacheSpy.mockClear()
       refreshDependentsCacheSpy.mockClear()
     })
+
+    test("should update cache when bustCache is true", async () => {
+      const nestedSection = await strapi.documents(contentType).create({
+        data: { name: "nestedSection" },
+      })
+
+      const parentSection = await strapi.documents(contentType).create({
+        data: { name: "parentSection", sections: [nestedSection.documentId] },
+      })
+
+      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+      setCacheSpy.mockReset()
+
+      await strapi.documents(contentType).findOne({ documentId: parentSection.documentId, populate: "*" })
+      expect(setCacheSpy).toHaveBeenCalledTimes(0)
+
+      await strapi.documents(contentType).findOne({ documentId: parentSection.documentId, populate: "*", bustCache: true })
+
+      expect(setCacheSpy).toHaveBeenCalledTimes(1)
+    })
   })
 })
