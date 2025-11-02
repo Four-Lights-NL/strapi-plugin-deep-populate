@@ -4,6 +4,7 @@ import { contentTypes } from "@strapi/utils"
 import cloneDeep from "lodash/cloneDeep"
 import get from "lodash/get"
 import has from "lodash/has"
+import merge from "lodash/merge"
 import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
@@ -59,7 +60,10 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
       ...params,
     })
 
-    set(resolvedPopulate, [component], componentPopulate) // NOTE: We pass cur as `array` so that the dot notation is used as the key
+    const currentPopulate = get(resolvedPopulate, [component])
+    const mergedComponentPopulate =
+      !currentPopulate && componentPopulate === true ? componentPopulate : merge({}, currentPopulate, componentPopulate)
+    set(resolvedPopulate, [component], mergedComponentPopulate) // NOTE: We pass cur as `array` so that the dot notation is used as the key
   }
 
   if (isEmpty(resolvedPopulate)) return undefined
@@ -130,7 +134,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
       .map((c) => _resolveValue({ document: c, lookup: componentLookup, attrName }))
 
     // It's possible that the component type is used more often in the dynamic zone, so we try to find one that actually has the requested attribute set
-    return (Array.isArray(componentValue) ? componentValue : [componentValue]).find((v) => hasValue(v))
+    return (Array.isArray(componentValue) ? componentValue : [componentValue]).filter((v) => hasValue(v))
   }
 
   // If the lookup contains a `populate`, we're dealing with a component or relation
@@ -144,7 +148,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
     )
 
     // It's possible that multiple components or relations are available, so we try to find one that actually has the requested attribute set
-    return childValue.find((v) => hasValue(v))
+    return childValue.filter((v) => hasValue(v))
   }
 
   // Otherwise, we'll just do a normal lookup
