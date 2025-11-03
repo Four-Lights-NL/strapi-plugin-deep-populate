@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.0] - 2025-11-03
+
+### Fixed
+
+- Improved population of repeatable relations, components and dynamic zones ([#89](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/89), Fixes [#88](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/issues/88)) (Thomas Rijpstra)
+
 ## [1.8.0] - 2025-10-22
 
 ### Added
