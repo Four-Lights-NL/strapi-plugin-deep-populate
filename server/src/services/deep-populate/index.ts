@@ -131,7 +131,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
     const dynamicZoneValue = dynamicZoneLookup.length === 0 ? document : get(document, dynamicZoneLookup, [])
     const componentValue = dynamicZoneValue
       .filter((b) => b.__component === dynamicZoneComponent)
-      .map((c) => _resolveValue({ document: c, lookup: componentLookup, attrName }))
+      .flatMap((c) => _resolveValue({ document: c, lookup: componentLookup, attrName }))
 
     // It's possible that the component type is used more often in the dynamic zone, so we try to find one that actually has the requested attribute set
     return (Array.isArray(componentValue) ? componentValue : [componentValue]).filter((v) => hasValue(v))
@@ -143,7 +143,7 @@ const _resolveValue = ({ document, lookup, attrName }) => {
     const childLookup = lookup.slice(populateIdx + 1, lookup.length)
 
     const parentValue = parentLookup.length === 0 ? document : get(document, parentLookup)
-    const childValue = (Array.isArray(parentValue) ? parentValue : [parentValue]).map((v) =>
+    const childValue = (Array.isArray(parentValue) ? parentValue : [parentValue]).flatMap((v) =>
       _resolveValue({ document: v, lookup: childLookup, attrName }),
     )
 
