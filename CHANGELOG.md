@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.1] - 2025-11-06
+
+### Security
+
+- Prevent prototype pollution in object merging ([`6264fb3`](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/commit/6264fb3)) (Thomas Rijpstra)
+
 ## [1.9.0] - 2025-11-03
 
 ### Fixed
@@ -169,6 +175,12 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.9.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.9.1
+
+[1.9.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.9.0
+
+[1.8.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.8.0
 
 [1.7.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.7.0
 
