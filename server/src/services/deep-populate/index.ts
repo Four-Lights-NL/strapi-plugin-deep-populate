@@ -9,6 +9,7 @@ import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
 import type { Config, ContentTypeConfigAllow } from "../../config"
+import { sanitizeObject } from "../../utils/sanitizeObject"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 import { getRelations, hasValue, isEmpty } from "./utils"
@@ -62,7 +63,9 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
 
     const currentPopulate = get(resolvedPopulate, [component])
     const mergedComponentPopulate =
-      !currentPopulate && componentPopulate === true ? componentPopulate : merge({}, currentPopulate, componentPopulate)
+      !currentPopulate && componentPopulate === true
+        ? componentPopulate
+        : merge({}, currentPopulate, sanitizeObject(componentPopulate))
     set(resolvedPopulate, [component], mergedComponentPopulate) // NOTE: We pass cur as `array` so that the dot notation is used as the key
   }
 
@@ -104,7 +107,7 @@ async function _populateRelation<TContentType extends UID.ContentType>({
   // Consolidate relations
   const newPopulate = {} as Record<UID.Schema, unknown>
   for (const { documentId } of relations) {
-    const relationPopulate = resolvedRelations.get(documentId)
+    const relationPopulate = sanitizeObject(resolvedRelations.get(documentId))
     mergeWith(newPopulate, relationPopulate, (existing, proposed) => {
       if (proposed === true && existing) return existing
       return undefined
@@ -343,7 +346,7 @@ export default async function populate(params: PopulateParams) {
   const { omitEmpty, localizations, contentTypes } = strapi.config.get("plugin::deep-populate") as Config
   const contentTypeConfig = has(contentTypes, "*") ? get(contentTypes, "*") : {}
   if (has(contentTypes, params.contentType)) {
-    mergeWith(contentTypeConfig, get(contentTypes, params.contentType))
+    mergeWith(contentTypeConfig, sanitizeObject(get(contentTypes, params.contentType)))
   }
   const { allow, deny } = contentTypeConfig
 
