@@ -1,13 +1,14 @@
 import type { Core, Modules } from "@strapi/strapi"
 import has from "lodash/has"
 import isEmpty from "lodash/isEmpty"
+import { version } from "../../../package.json"
 import type { PopulateParams } from "./populate"
 
 type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
 
 const getHash = (params: PopulateParams) => {
-  return `${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
+  return `${version}-${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
 }
 
 const isValid = (entry: Modules.Documents.AnyDocument) => {
