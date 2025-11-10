@@ -17,7 +17,7 @@ const isEqualOrBothEmpty = (lhs: object, rhs: object) => {
 }
 
 const getHash = (params: PopulateParams) => {
-  return `${majorMinorVersion}-${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
+  return `${majorMinorVersion}-${params.contentType}-${params.documentId}-${params.locale}-${params.status}`
 }
 
 const isValid = (entry: Modules.Documents.AnyDocument, params: PopulateParams) => {
