@@ -3,16 +3,15 @@ import { contentTypes } from "@strapi/utils"
 
 import cloneDeep from "lodash/cloneDeep"
 import get from "lodash/get"
-import has from "lodash/has"
 import merge from "lodash/merge"
 import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
-import type { Config, ContentTypeConfigAllow } from "../../config"
+import type { ContentTypeConfigAllow } from "../../config"
 import { sanitizeObject } from "../../utils/sanitizeObject"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
-import { getRelations, hasValue, isEmpty } from "./utils"
+import { getConfig, getRelations, hasValue, isEmpty } from "./utils"
 
 async function _populateComponent<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
   schema,
@@ -343,21 +342,16 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 }
 
 export default async function populate(params: PopulateParams) {
-  const { omitEmpty, localizations, contentTypes } = strapi.config.get("plugin::deep-populate") as Config
-  const contentTypeConfig = has(contentTypes, "*") ? get(contentTypes, "*") : {}
-  if (has(contentTypes, params.contentType)) {
-    mergeWith(contentTypeConfig, sanitizeObject(get(contentTypes, params.contentType)))
-  }
-  const { allow, deny } = contentTypeConfig
+  const config = getConfig(params)
 
   const resolvedRelations = new Map()
   const populated = (await _populate({
-    omitEmpty: contentTypeConfig.omitEmpty ?? omitEmpty,
-    localizations: contentTypeConfig.localizations ?? localizations,
     schema: params.contentType,
     resolvedRelations,
-    __deny: deny,
-    __allow: allow,
+    omitEmpty: config.omitEmpty,
+    localizations: config.localizations,
+    __deny: config.deny,
+    __allow: config.allow,
     ...params,
   })) as Record<string, unknown>
   populated.__deepPopulated = true
