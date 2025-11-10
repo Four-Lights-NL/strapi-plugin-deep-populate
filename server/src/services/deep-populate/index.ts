@@ -355,5 +355,7 @@ export default async function populate(params: PopulateParams) {
     ...params,
   })) as Record<string, unknown>
   populated.__deepPopulated = true
+  populated.__deepPopulateConfig = config
+
   return { populate: populated, dependencies: [...resolvedRelations.keys()] }
 }
