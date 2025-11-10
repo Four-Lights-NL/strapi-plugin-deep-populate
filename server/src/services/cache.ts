@@ -7,8 +7,9 @@ import type { PopulateParams } from "./populate"
 type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
 
+const majorMinorVersion = version.split(".").slice(0, -1).join(".")
 const getHash = (params: PopulateParams) => {
-  return `${version}-${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
+  return `${majorMinorVersion}-${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
 }
 
 const isValid = (entry: Modules.Documents.AnyDocument) => {
