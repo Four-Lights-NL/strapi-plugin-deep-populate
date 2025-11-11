@@ -71,7 +71,10 @@ export default async ({ strapi }) => {
 
     const returnDeeplyPopulated =
       replaceWildcard && (await populateIsWildcardEquivalent({ strapi, schema: context.contentType, populate }))
-    if (has(populate, "__deepPopulated")) unset(populate, "__deepPopulated")
+    if (has(populate, "__deepPopulated")) {
+      unset(populate, "__deepPopulated")
+      unset(populate, "__deepPopulateConfig")
+    }
 
     if (useCache && context.action === "delete")
       await cacheService.clear({ ...context.params, contentType: context.uid })

@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.10.0] - 2025-11-11
+
+### Breaking Changes
+
+- **Cache Invalidation Is Now Tied to Plugin Version:**  
+To ensure more reliable cache behavior, the cache entries are now fixated to the major.minor version of the plugin, and the plugin's config. This means that if you update to a new major or minor version of the plugin (e.g. 1.9 -> 1.10, 1.10 -> 2.0) the existing cache entries are invalidated. ([#92](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/92)) (Thomas Rijpstra)
+
+- **Cache Invalidation Is Now Tied to Plugin Configuration:**  
+Cached entries will now be saved with the active plugin configuration. Any changes to the plugin configuration will result in cache invalidation, to ensure the plugin's behaviour actually reflects the current config. ([#92](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/92)) (Thomas Rijpstra)
+
+
+
 ## [1.9.3] - 2025-11-11
 
 ### Fixed
@@ -237,3 +249,5 @@ _:seedling: Initial release._
 [1.1.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.1.0
 
 [1.0.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.0.0
+
+[1.10.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.10.0

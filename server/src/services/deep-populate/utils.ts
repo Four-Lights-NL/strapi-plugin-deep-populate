@@ -1,5 +1,9 @@
 import type { Schema, UID } from "@strapi/strapi"
 import { contentTypes } from "@strapi/utils"
+import { get, has, mergeWith } from "lodash"
+import type { Config } from "../../config"
+import { sanitizeObject } from "../../utils/sanitizeObject"
+import type { PopulateParams } from "../populate"
 
 type PluginOptions = {
   i18n?: {
@@ -44,4 +48,21 @@ export const hasValue = (value: unknown) => {
     (Array.isArray(value) && value.length === 0) ||
     (typeof value === "object" && isEmpty(value))
   )
+}
+
+export const getConfig = (params: PopulateParams) => {
+  const {
+    omitEmpty: omitEmptyFallback,
+    localizations: localizationsFallback,
+    contentTypes,
+  } = strapi.config.get("plugin::deep-populate") as Config
+  const contentTypeConfig = has(contentTypes, "*") ? get(contentTypes, "*") : {}
+  if (has(contentTypes, params.contentType)) {
+    mergeWith(contentTypeConfig, sanitizeObject(get(contentTypes, params.contentType)))
+  }
+  const { allow, deny } = contentTypeConfig
+  const omitEmpty = params.omitEmpty ?? contentTypeConfig.omitEmpty ?? omitEmptyFallback
+  const localizations = params.localizations ?? contentTypeConfig.localizations ?? localizationsFallback
+
+  return { allow, deny, omitEmpty, localizations }
 }

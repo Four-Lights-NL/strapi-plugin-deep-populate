@@ -1,17 +1,33 @@
 import type { Core, Modules } from "@strapi/strapi"
-import has from "lodash/has"
+import get from "lodash/get"
 import isEmpty from "lodash/isEmpty"
+import isEqual from "lodash/isEqual"
+import { version } from "../../../package.json"
+import { getConfig } from "./deep-populate/utils"
 import type { PopulateParams } from "./populate"
 
 type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
 
-const getHash = (params: PopulateParams) => {
-  return `${params.contentType}-${params.documentId}-${params.locale}-${params.status}-${params.omitEmpty ? "sparse" : "full"}-${params.localizations ? "all" : "single"}`
+const majorMinorVersion = version.split(".").slice(0, -1).join(".")
+
+const isEqualConfig = (lhs: object, rhs: object) => {
+  const cleanedLhs = JSON.parse(JSON.stringify(lhs))
+  const cleanedRhs = JSON.parse(JSON.stringify(rhs))
+  return isEqual(cleanedLhs, cleanedRhs)
 }
 
-const isValid = (entry: Modules.Documents.AnyDocument) => {
-  return entry && !isEmpty(entry.populate) && has(entry.populate, "__deepPopulated")
+const getHash = (params: PopulateParams) => {
+  return `${majorMinorVersion}-${params.contentType}-${params.documentId}-${params.locale}-${params.status}`
+}
+
+const isValid = (entry: Modules.Documents.AnyDocument, params: PopulateParams) => {
+  if (entry && !isEmpty(entry.populate) && get(entry.populate, "__deepPopulated", false)) {
+    const cachedConfig = entry.populate.__deepPopulateConfig
+    const currentConfig = getConfig(params)
+    return isEqualConfig(cachedConfig, currentConfig)
+  }
+  return false
 }
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
@@ -19,7 +35,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const entry = await strapi
       .documents("plugin::deep-populate.cache")
       .findFirst({ filters: { hash: { $eq: getHash(params) } } })
-    return isValid(entry) ? entry.populate : null
+    return isValid(entry, params) ? entry.populate : null
   },
   async set({ populate, dependencies, ...params }: SetPopulateParams) {
     const documentService = strapi.documents("plugin::deep-populate.cache")

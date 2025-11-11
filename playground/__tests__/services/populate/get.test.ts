@@ -35,7 +35,15 @@ describe("get", () => {
 
     test("no relation", async () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({ __deepPopulated: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: undefined,
+          omitEmpty: true,
+        },
+      })
     })
 
     test("relation one level deep", async () => {
