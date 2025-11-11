@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.2] - 2025-11-11
+
+### Fixed
+
+- `bustCache` parameter now works correctly when added as a querystring parameter ([#93](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/93)) (Thomas Rijpstra)
+
 ## [1.9.1] - 2025-11-06
 
 ### Security
@@ -175,6 +181,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.9.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.9.2
 
 [1.9.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.9.1
 
