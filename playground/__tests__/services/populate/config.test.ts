@@ -163,6 +163,12 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: undefined,
+          omitEmpty: false,
+        },
         image: true,
         localizations: true,
         members: true,
@@ -174,22 +180,46 @@ describe("config", () => {
       omitEmpty = true
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
-      expect(populate).toStrictEqual({ __deepPopulated: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: undefined,
+          omitEmpty: true,
+        },
+      })
     })
 
-    test("should be overriden by function params", async () => {
+    test("should be overridden by function params", async () => {
       omitEmpty = false
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
-      expect(populate).toStrictEqual({ __deepPopulated: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: undefined,
+          omitEmpty: true,
+        },
+      })
     })
 
-    test("should be overriden by content type omitEmpty", async () => {
+    test("should be overridden by content type omitEmpty", async () => {
       omitEmpty = false
       configContentTypes[contentType] = { omitEmpty: true }
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
-      expect(populate).toStrictEqual({ __deepPopulated: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: undefined,
+          omitEmpty: true,
+        },
+      })
     })
   })
 
@@ -213,7 +243,18 @@ describe("config", () => {
       localizations = false
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
-      expect(populate).toStrictEqual({ __deepPopulated: true, image: true, members: true, sections: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: false,
+          omitEmpty: undefined,
+        },
+        image: true,
+        members: true,
+        sections: true,
+      })
     })
 
     test("should include localizations when true", async () => {
@@ -222,6 +263,12 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: true,
+          omitEmpty: undefined,
+        },
         localizations: true,
         image: true,
         members: true,
@@ -229,12 +276,18 @@ describe("config", () => {
       })
     })
 
-    test("should be overriden by function param", async () => {
+    test("should be overridden by function param", async () => {
       localizations = false
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId, localizations: true })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: true,
+          omitEmpty: undefined,
+        },
         localizations: true,
         image: true,
         members: true,
@@ -242,13 +295,19 @@ describe("config", () => {
       })
     })
 
-    test("should be overriden by content type localizations configuration", async () => {
+    test("should be overridden by content type localizations configuration", async () => {
       localizations = false
       configContentTypes[contentType] = { localizations: true }
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: true,
+          omitEmpty: undefined,
+        },
         localizations: true,
         image: true,
         members: true,
@@ -261,7 +320,16 @@ describe("config", () => {
       omitEmpty = true
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
-      expect(populate).toStrictEqual({ __deepPopulated: true, localizations: true })
+      expect(populate).toStrictEqual({
+        __deepPopulated: true,
+        __deepPopulateConfig: {
+          allow: undefined,
+          deny: undefined,
+          localizations: true,
+          omitEmpty: true,
+        },
+        localizations: true,
+      })
     })
   })
 })
