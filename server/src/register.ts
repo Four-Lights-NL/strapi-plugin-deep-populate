@@ -1,15 +1,17 @@
 import type { Core, Schema, UID } from "@strapi/strapi"
 import { sanitize } from "@strapi/utils"
-import cloneDeep from "lodash/cloneDeep"
 
+import cloneDeep from "lodash/cloneDeep"
 import has from "lodash/has"
 import isEmpty from "lodash/isEmpty"
 import unset from "lodash/unset"
+
 import {
   addDeepPopulateCacheFullTextIndex,
   hasDeepPopulateCacheFullTextIndex,
   removeDeepPopulateCacheFullTextIndex,
 } from "./migrations"
+import { asBoolean } from "./utils/asBoolean"
 
 const populateIsWildcardEquivalent = async ({
   strapi,
@@ -65,6 +67,8 @@ export default async ({ strapi }) => {
     const cacheService = strapi.plugin("deep-populate").service("cache")
 
     const { populate } = context.params
+    const bustCache = asBoolean(context.params.bustCache)
+
     const returnDeeplyPopulated =
       replaceWildcard && (await populateIsWildcardEquivalent({ strapi, schema: context.contentType, populate }))
     if (has(populate, "__deepPopulated")) unset(populate, "__deepPopulated")
@@ -104,7 +108,7 @@ export default async ({ strapi }) => {
         documentId,
         status,
         locale,
-        bustCache: context.params.bustCache,
+        bustCache,
       })
       return await strapi
         .documents(context.uid)
@@ -120,7 +124,7 @@ export default async ({ strapi }) => {
             documentId,
             status,
             locale,
-            bustCache: context.params.bustCache,
+            bustCache,
           })
           return await strapi
             .documents(context.uid)
