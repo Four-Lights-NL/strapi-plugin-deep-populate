@@ -134,7 +134,6 @@ describe("api", () => {
       // check directly with strapi if the cache was filled
       expect(await strapi.documents("plugin::deep-populate.cache").count({ status: "draft" })).toBe(1)
       const cacheOne = await strapi.documents("plugin::deep-populate.cache").findFirst({})
-      console.log(cacheOne.dependencies)
 
       // update the cached entry slightly to see if the return changes
       await strapi.documents("plugin::deep-populate.cache").update({
