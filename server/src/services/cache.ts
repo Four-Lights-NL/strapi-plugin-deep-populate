@@ -11,9 +11,10 @@ type SetPopulateParams = PopulateParams &
 
 const majorMinorVersion = version.split(".").slice(0, -1).join(".")
 
-const isEqualOrBothEmpty = (lhs: object, rhs: object) => {
-  const bothEmpty = isEmpty(JSON.parse(JSON.stringify(lhs))) && isEmpty(JSON.parse(JSON.stringify(rhs)))
-  return isEqual(lhs, rhs) || bothEmpty
+const isEqualConfig = (lhs: object, rhs: object) => {
+  const cleanedLhs = JSON.parse(JSON.stringify(lhs))
+  const cleanedRhs = JSON.parse(JSON.stringify(rhs))
+  return isEqual(cleanedLhs, cleanedRhs)
 }
 
 const getHash = (params: PopulateParams) => {
@@ -24,7 +25,7 @@ const isValid = (entry: Modules.Documents.AnyDocument, params: PopulateParams) =
   if (entry && !isEmpty(entry.populate) && get(entry.populate, "__deepPopulated", false)) {
     const cachedConfig = entry.populate.__deepPopulateConfig
     const currentConfig = getConfig(params)
-    return isEqualOrBothEmpty(cachedConfig, currentConfig)
+    return isEqualConfig(cachedConfig, currentConfig)
   }
   return false
 }
