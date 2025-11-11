@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.3] - 2025-11-11
+
+### Fixed
+
+- Denied content-types are incorrectly included in the populate ([#96](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/96)) (Thomas Rijpstra)
+
 ## [1.9.2] - 2025-11-11
 
 ### Fixed
@@ -181,6 +187,8 @@
 ## [1.0.0] - 2025-01-27
 
 _:seedling: Initial release._
+
+[1.9.3]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.9.3
 
 [1.9.2]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.9.2
 
