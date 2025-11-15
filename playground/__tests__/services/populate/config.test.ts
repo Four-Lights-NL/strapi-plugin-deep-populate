@@ -71,7 +71,7 @@ describe("config", () => {
   })
 
   describe("deny", () => {
-    it("should not populate denied relations", async () => {
+    it("should not deeply populate denied relations", async () => {
       configContentTypes[contentType] = {
         deny: { relations: [contentType] },
       }

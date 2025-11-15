@@ -131,11 +131,15 @@ describe("cache invalidation", () => {
 
     // Verify sections is populated but other relations are not
     expect(doc1).toHaveProperty("sections")
+    for (const section of doc1.sections) {
+      expect(section).toHaveProperty("sections")
+    }
     expect(doc1).not.toHaveProperty("image")
     expect(doc1).not.toHaveProperty("members")
 
     // Change config: empty allow list (no relations)
     configContentTypes[contentType] = {
+      allow: {},
       deny: { relations: ["api::section.section"] },
     }
 
@@ -146,7 +150,10 @@ describe("cache invalidation", () => {
     })
 
     // Verify no relations are populated
-    expect(doc2).not.toHaveProperty("sections")
+    expect(doc2).toHaveProperty("sections")
+    for (const section of doc2.sections) {
+      expect(section).not.toHaveProperty("sections")
+    }
     expect(doc2).not.toHaveProperty("image")
     expect(doc2).not.toHaveProperty("members")
   })
@@ -165,6 +172,11 @@ describe("cache invalidation", () => {
 
     // Verify all relations are populated
     expect(doc1).toHaveProperty("sections")
+
+    for (const section of doc1.sections) {
+      expect(section).toHaveProperty("sections")
+    }
+
     expect(doc1).toHaveProperty("image", null) // image is empty but should be populated
     expect(doc1).toHaveProperty("members", []) // members is empty but should be populated
 
@@ -180,7 +192,11 @@ describe("cache invalidation", () => {
     })
 
     // Verify sections is not populated but other relations are
-    expect(doc2).not.toHaveProperty("sections")
+    expect(doc2).toHaveProperty("sections")
+
+    for (const section of doc2.sections) {
+      expect(section).not.toHaveProperty("sections")
+    }
     expect(doc2).toHaveProperty("image", null)
     expect(doc2).toHaveProperty("members", [])
   })
