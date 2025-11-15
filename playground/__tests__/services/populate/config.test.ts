@@ -85,7 +85,7 @@ describe("config", () => {
         sections: [
           {
             ...context.sectionWithLink,
-            blocks: [{ ...context.sectionWithLink.blocks[0] }],
+            blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
           },
         ],
       })
