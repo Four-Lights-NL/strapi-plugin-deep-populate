@@ -261,7 +261,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
       }
 
       if (__deny?.relations?.includes(attr.target as UID.ContentType)) {
-        newPopulate[attrName] = false
+        newPopulate[attrName] = true
         continue
       }
     }
@@ -273,7 +273,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
       }
 
       if (__deny?.components?.includes(attr.component as UID.Component)) {
-        newPopulate[attrName] = false
+        newPopulate[attrName] = true
         continue
       }
     }

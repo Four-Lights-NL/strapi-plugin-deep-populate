@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0] - 2025-11-15
+
+### Fixed
+
+- Deny content-type configuration should not omit the actual relation; only prohibit traversing it ([#98](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/98)) (Thomas Rijpstra)
+
+
 ## [1.10.0] - 2025-11-11
 
 ### Breaking Changes
@@ -251,3 +258,6 @@ _:seedling: Initial release._
 [1.0.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.0.0
 
 [1.10.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.10.0
+
+
+[1.11.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.11.0

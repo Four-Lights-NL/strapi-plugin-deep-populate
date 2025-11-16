@@ -71,7 +71,7 @@ describe("config", () => {
   })
 
   describe("deny", () => {
-    it("should not populate denied relations", async () => {
+    it("should not deeply populate denied relations", async () => {
       configContentTypes[contentType] = {
         deny: { relations: [contentType] },
       }
@@ -85,7 +85,7 @@ describe("config", () => {
         sections: [
           {
             ...context.sectionWithLink,
-            blocks: [{ ...context.sectionWithLink.blocks[0] }],
+            blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
           },
         ],
       })
