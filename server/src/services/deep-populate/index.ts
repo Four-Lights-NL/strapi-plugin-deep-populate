@@ -198,7 +198,13 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 }: PopulateProps<TContentType, TSchema>) {
   const newPopulate = {}
 
-  let relations = getRelations(strapi.getModel(schema))
+  const model = strapi.getModel(schema)
+  if (!model) {
+    console.warn(`[Plugin: Deep Populate] Could not find model for contentType: '${schema}'`)
+    console.warn("Please create a bug report and share the troublesome contentType.")
+    return true
+  }
+  let relations = getRelations(model)
   let currentPopulate = cloneDeep(populate)
 
   // Make sure we won't revisit this documentId from nested children
