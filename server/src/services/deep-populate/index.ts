@@ -202,7 +202,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   if (!model) {
     console.warn(`[Plugin: Deep Populate] Could not find model for contentType: '${schema}'`)
     console.warn("Please create a bug report and share the troublesome contentType.")
-    return true
+    return {}
   }
   let relations = getRelations(model)
   let currentPopulate = cloneDeep(populate)
