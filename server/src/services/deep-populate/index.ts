@@ -200,8 +200,8 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
   const model = strapi.getModel(schema)
   if (!model) {
-    console.warn(`[Plugin: Deep Populate] Could not find model for contentType: '${schema}'`)
-    console.warn("Please create a bug report and share the troublesome contentType.")
+    strapi.log.warn(`[Plugin: Deep Populate] Could not find model for contentType: '${schema}'`)
+    strapi.log.warn("Please create a bug report and share the troublesome contentType.")
     return {}
   }
   let relations = getRelations(model)
