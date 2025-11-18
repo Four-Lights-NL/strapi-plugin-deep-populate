@@ -11,6 +11,7 @@ import type { ContentTypeConfigAllow } from "../../config"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 
+import log from "../../utils/log"
 import { sanitizeObject } from "../../utils/sanitizeObject"
 import { getConfig, getRelations, hasValue, isEmpty } from "./utils"
 
@@ -25,6 +26,19 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   ...params
 }: PopulateComponentProps<TContentType, TSchema>) {
   const componentLookup = lookup.length === 0 ? [attrName] : [...lookup, inDynamicZone ? "on" : "populate", attrName]
+
+  if (strapi.getModel(schema) === undefined) {
+    if (inDynamicZone) {
+      const dynamicZoneName = lookup[lookup.length - 1]
+      log.warn(
+        `[Plugin: Deep Populate] The dynamic zone '${dynamicZoneName}' is referencing a non-existing component '${schema}'. You should fix this.`,
+        { lookup },
+      )
+    } else {
+      log.warn(`[Plugin: Deep Populate] Could not find component: '${schema}'`)
+    }
+    return true
+  }
 
   const componentPopulate = populate
   set(componentPopulate, componentLookup, { populate: "*" })

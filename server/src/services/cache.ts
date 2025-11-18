@@ -7,6 +7,7 @@ import isEqual from "lodash/isEqual"
 import type { PopulateParams } from "./populate"
 
 import { version } from "../../../package.json"
+import log from "../utils/log"
 import { getConfig } from "./deep-populate/utils"
 
 type SetPopulateParams = PopulateParams &
@@ -46,14 +47,19 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
 
-    return entry
-      ? await documentService.update({
-          documentId: entry.documentId,
-          data: { populate, dependencies: dependencies.join(",") } as Partial<
-            Modules.Documents.Params.Data.Input<"plugin::deep-populate.cache">
-          >,
-        })
-      : await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
+    try {
+      return entry
+        ? await documentService.update({
+            documentId: entry.documentId,
+            data: { populate, dependencies: dependencies.join(",") } as Partial<
+              Modules.Documents.Params.Data.Input<"plugin::deep-populate.cache">
+            >,
+          })
+        : await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
+    } catch (error: unknown) {
+      log.error("[Plugin: Deep Populate] Failed to save cached entry", { error })
+      return
+    }
   },
   async clear(params: PopulateParams) {
     const entry = await strapi
