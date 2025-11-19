@@ -1,7 +1,9 @@
 import fs from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
+
 import type { Core } from "@strapi/strapi"
+
 import { File } from "formidable"
 
 const createFormidableFile = async (base64Image: string): Promise<File> => {

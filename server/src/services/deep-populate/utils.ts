@@ -1,9 +1,12 @@
 import type { Schema, UID } from "@strapi/strapi"
+
 import { contentTypes } from "@strapi/utils"
 import { get, has, mergeWith } from "lodash"
+
 import type { Config } from "../../config"
-import { sanitizeObject } from "../../utils/sanitizeObject"
 import type { PopulateParams } from "../populate"
+
+import { sanitizeObject } from "../../utils/sanitizeObject"
 
 type PluginOptions = {
   i18n?: {

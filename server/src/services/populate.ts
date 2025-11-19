@@ -1,6 +1,7 @@
 import type { Core, Modules, UID } from "@strapi/strapi"
 
 import type { Config } from "../config"
+
 import populate from "./deep-populate"
 
 export type PopulateParams<TContentType extends UID.ContentType = UID.ContentType> = Modules.Documents.Params.Pick<

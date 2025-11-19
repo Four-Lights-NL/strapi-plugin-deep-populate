@@ -1,8 +1,11 @@
 import type { Modules } from "@strapi/strapi"
+
 import supertest from "supertest"
+
+import type { UnwrapPromise } from "../../helpers/unwrapPromise"
+
 import { setupDocuments } from "../../helpers/setupDocuments"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
-import type { UnwrapPromise } from "../../helpers/unwrapPromise"
 
 describe("api", () => {
   let context: UnwrapPromise<ReturnType<typeof setupDocuments>>
