@@ -7,25 +7,8 @@ export default defineConfig({
     globals: true,
     testTimeout: 60000,
     hookTimeout: 30000,
-    isolate: false,
-    poolOptions: {
-      forks: {
-        singleFork: true,
-        execArgv: ["--expose-gc"],
-      },
-      vmForks: {
-        singleFork: false,
-        execArgv: ["--expose-gc"],
-      },
-      threads: {
-        singleThread: true,
-        execArgv: ["--expose-gc"],
-      },
-      vmThreads: {
-        singleThread: true,
-        execArgv: ["--expose-gc"],
-      },
-    },
+    isolate: true,
+    execArgv: ["--expose-gc"],
     // Cleanup nasty node warnings
     onConsoleLog(log, type) {
       return !(type === "stdout" && log.includes("warning"))
