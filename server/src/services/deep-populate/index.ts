@@ -11,6 +11,7 @@ import type { ContentTypeConfigAllow } from "../../config"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 
+import log from "../../utils/log"
 import { sanitizeObject } from "../../utils/sanitizeObject"
 import { getConfig, getRelations, hasValue, isEmpty } from "./utils"
 
@@ -25,6 +26,16 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   ...params
 }: PopulateComponentProps<TContentType, TSchema>) {
   const componentLookup = lookup.length === 0 ? [attrName] : [...lookup, inDynamicZone ? "on" : "populate", attrName]
+
+  if (strapi.getModel(schema) === undefined) {
+    log.warn(
+      inDynamicZone
+        ? `The dynamic zone '${lookup[lookup.length - 1]}' is referencing a non-existing component '${schema}'. You should fix this.`
+        : `Could not find component: '${schema}'`,
+      { lookup },
+    )
+    return true
+  }
 
   const componentPopulate = populate
   set(componentPopulate, componentLookup, { populate: "*" })
@@ -198,7 +209,13 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 }: PopulateProps<TContentType, TSchema>) {
   const newPopulate = {}
 
-  let relations = getRelations(strapi.getModel(schema))
+  const model = strapi.getModel(schema)
+  if (!model) {
+    strapi.log.warn(`[Plugin: Deep Populate] Could not find model for contentType: '${schema}'`)
+    strapi.log.warn("Please create a bug report and share the troublesome contentType.")
+    return {}
+  }
+  let relations = getRelations(model)
   let currentPopulate = cloneDeep(populate)
 
   // Make sure we won't revisit this documentId from nested children
