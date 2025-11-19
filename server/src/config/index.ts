@@ -1,4 +1,5 @@
 import type { UID } from "@strapi/strapi"
+
 import isEmpty from "lodash/isEmpty"
 import isObject from "lodash/isObject"
 

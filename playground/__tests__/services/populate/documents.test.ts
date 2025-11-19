@@ -1,7 +1,9 @@
 import get from "lodash/get"
+
+import type { UnwrapPromise } from "../../helpers/unwrapPromise"
+
 import { setupDocuments } from "../../helpers/setupDocuments"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
-import type { UnwrapPromise } from "../../helpers/unwrapPromise"
 
 describe("documents", () => {
   let context: UnwrapPromise<ReturnType<typeof setupDocuments>>

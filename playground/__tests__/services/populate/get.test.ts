@@ -1,4 +1,5 @@
 import type { Core, Modules } from "@strapi/strapi"
+
 import { cleanImages, uploadImage } from "../../helpers/files"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 

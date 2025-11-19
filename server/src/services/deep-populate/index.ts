@@ -1,6 +1,6 @@
 import type { Data, Schema, UID } from "@strapi/strapi"
-import { contentTypes } from "@strapi/utils"
 
+import { contentTypes } from "@strapi/utils"
 import cloneDeep from "lodash/cloneDeep"
 import get from "lodash/get"
 import merge from "lodash/merge"
@@ -8,9 +8,10 @@ import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
 import type { ContentTypeConfigAllow } from "../../config"
-import { sanitizeObject } from "../../utils/sanitizeObject"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
+
+import { sanitizeObject } from "../../utils/sanitizeObject"
 import { getConfig, getRelations, hasValue, isEmpty } from "./utils"
 
 async function _populateComponent<TContentType extends UID.ContentType, TSchema extends UID.Schema>({

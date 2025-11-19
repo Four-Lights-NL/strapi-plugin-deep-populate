@@ -1,4 +1,5 @@
 import type { Core, Data, Modules } from "@strapi/strapi"
+
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
 
 const mockDate = "2025-01-01T12:00:00.000Z"
@@ -235,7 +236,9 @@ describe("lifecycle", () => {
       await strapi.documents(contentType).findOne({ documentId: parentSection.documentId, populate: "*" })
       expect(setCacheSpy).toHaveBeenCalledTimes(0)
 
-      await strapi.documents(contentType).findOne({ documentId: parentSection.documentId, populate: "*", bustCache: true })
+      await strapi
+        .documents(contentType)
+        .findOne({ documentId: parentSection.documentId, populate: "*", bustCache: true })
 
       expect(setCacheSpy).toHaveBeenCalledTimes(1)
     })

@@ -1,7 +1,9 @@
 import type { UID } from "@strapi/strapi"
+
+import type { UnwrapPromise } from "../../helpers/unwrapPromise"
+
 import { setupDocuments } from "../../helpers/setupDocuments"
 import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
-import type { UnwrapPromise } from "../../helpers/unwrapPromise"
 
 describe("cache invalidation", () => {
   const contentType = "api::page.page" as const

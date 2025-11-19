@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 import fs from "node:fs"
 
 const version = process.argv[2]

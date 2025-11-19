@@ -1,6 +1,6 @@
 import type { Core, Schema, UID } from "@strapi/strapi"
-import { sanitize } from "@strapi/utils"
 
+import { sanitize } from "@strapi/utils"
 import cloneDeep from "lodash/cloneDeep"
 import has from "lodash/has"
 import isEmpty from "lodash/isEmpty"

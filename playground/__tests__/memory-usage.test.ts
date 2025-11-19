@@ -1,8 +1,10 @@
 import { afterAll, beforeAll, describe, it } from "vitest"
+
+import type { UnwrapPromise } from "./helpers/unwrapPromise"
+
 import * as MemoryTracker from "./helpers/memoryTracker"
 import { setupDocuments } from "./helpers/setupDocuments"
 import { setupStrapi, strapi, teardownStrapi } from "./helpers/strapi"
-import type { UnwrapPromise } from "./helpers/unwrapPromise"
 
 describe.sequential("Memory Usage Tests", () => {
   let context: UnwrapPromise<ReturnType<typeof setupDocuments>>
