@@ -28,15 +28,12 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   const componentLookup = lookup.length === 0 ? [attrName] : [...lookup, inDynamicZone ? "on" : "populate", attrName]
 
   if (strapi.getModel(schema) === undefined) {
-    if (inDynamicZone) {
-      const dynamicZoneName = lookup[lookup.length - 1]
-      log.warn(
-        `[Plugin: Deep Populate] The dynamic zone '${dynamicZoneName}' is referencing a non-existing component '${schema}'. You should fix this.`,
-        { lookup },
-      )
-    } else {
-      log.warn(`[Plugin: Deep Populate] Could not find component: '${schema}'`)
-    }
+    log.warn(
+      inDynamicZone
+        ? `The dynamic zone '${lookup[lookup.length - 1]}' is referencing a non-existing component '${schema}'. You should fix this.`
+        : `Could not find component: '${schema}'`,
+      { lookup },
+    )
     return true
   }
 
