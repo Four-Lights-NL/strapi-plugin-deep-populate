@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.11.1] - 2025-11-19
+
+### Changed
+
+- Updated dependencies to latest versions ([#103](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/103), [#105](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/105)) (Thomas Rijpstra)
+- Plugin will output warnings if content-types are missing, for example when a dynamic zone is referencing a deleted component ([#100](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/100)) (Thomas Rijpstra)
+
+### Fixed
+
+- Missing content-types do not crash the plugin anymore ([#100](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/100)) (Thomas Rijpstra)
+- Handle potential race condition during cache entry set ([#100](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/100)) (Thomas Rijpstra)
+
 ## [1.11.0] - 2025-11-15
 
 ### Fixed
@@ -261,3 +273,5 @@ _:seedling: Initial release._
 
 
 [1.11.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.11.0
+
+[1.11.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.11.1
