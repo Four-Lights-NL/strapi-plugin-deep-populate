@@ -76,11 +76,14 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     return retval
   },
 
-  async refreshDependents(documentId: string) {
+  async refreshDependents(documentId: string, status?: "draft" | "published" | undefined) {
     // Get all cached entries that are dependent on the document
-    const entries = await strapi
+    let entries = await strapi
       .documents("plugin::deep-populate.cache")
       .findMany({ filters: { dependencies: { $contains: documentId } }, fields: ["documentId", "params"] })
+
+    // Filter on requested status
+    if (status !== undefined) entries = entries.filter((entry) => entry.params.status === status)
 
     // Delete the cached entries
     const deleted = await strapi.db.query("plugin::deep-populate.cache").deleteMany({
