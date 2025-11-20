@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.12.0] - 2025-11-20
+
+### Fixed
+
+- Cache invalidation now properly triggers when publishing an document ([#107](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/107)) (Thomas Rijpstra)
+
 ## [1.11.1] - 2025-11-19
 
 ### Changed
@@ -275,3 +281,5 @@ _:seedling: Initial release._
 [1.11.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.11.0
 
 [1.11.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.11.1
+
+[1.12.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.12.0
