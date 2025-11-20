@@ -73,10 +73,19 @@ async function _populateDynamicZone<TContentType extends UID.ContentType>({
     })
 
     const currentPopulate = get(resolvedPopulate, [component])
-    const mergedComponentPopulate =
-      !currentPopulate && componentPopulate === true
-        ? componentPopulate
-        : merge({}, currentPopulate, sanitizeObject(componentPopulate))
+    let mergedComponentPopulate: boolean | unknown | undefined
+    if (currentPopulate === undefined) {
+      mergedComponentPopulate =
+        typeof componentPopulate === "boolean" ? componentPopulate : sanitizeObject(componentPopulate)
+    } else if (typeof currentPopulate === "boolean") {
+      mergedComponentPopulate =
+        typeof componentPopulate === "boolean" ? currentPopulate || componentPopulate : currentPopulate
+    } else if (typeof currentPopulate === "object") {
+      mergedComponentPopulate =
+        typeof componentPopulate === "object"
+          ? merge(currentPopulate, sanitizeObject(componentPopulate))
+          : currentPopulate
+    }
     set(resolvedPopulate, [component], mergedComponentPopulate) // NOTE: We pass cur as `array` so that the dot notation is used as the key
   }
 
