@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.13.0] - 2025-11-20
+
+### Fixed
+
+- Merging deeply nested dynamic zones in repeatable components will now be correctly merged ([`c1a4d02`](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/commit/c1a4d02)) (Thomas Rijpstra)
+
 ## [1.12.0] - 2025-11-20
 
 ### Fixed
@@ -283,3 +289,5 @@ _:seedling: Initial release._
 [1.11.1]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.11.1
 
 [1.12.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.12.0
+
+[1.13.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.13.0
