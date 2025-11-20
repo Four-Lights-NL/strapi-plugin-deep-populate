@@ -87,12 +87,12 @@ export default async ({ strapi }) => {
     const result = await next()
     if (!result) return result
 
-    if (["create", "update"].includes(context.action)) {
+    if (["create", "update", "publish"].includes(context.action)) {
       const { documentId, publishedAt, locale } = result
       const status = publishedAt !== null ? "published" : "draft"
+      const refreshCache = useCache && ["update", "publish"].includes(context.action)
 
-      if (useCache && context.action === "update")
-        await cacheService.clear({ ...context.params, contentType: context.uid })
+      if (refreshCache) await cacheService.clear({ ...context.params, status, contentType: context.uid })
 
       if (useCache || returnDeeplyPopulated) {
         const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
