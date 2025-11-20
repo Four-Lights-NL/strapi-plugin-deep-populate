@@ -375,5 +375,7 @@ export default async function populate(params: PopulateParams) {
   populated.__deepPopulated = true
   populated.__deepPopulateConfig = config
 
-  return { populate: populated, dependencies: [...resolvedRelations.keys()] }
+  // Remove content-types from resolvedRelations
+  const dependencies = [...resolvedRelations.keys()].filter((r) => !r.startsWith("api::"))
+  return { populate: populated, dependencies }
 }
