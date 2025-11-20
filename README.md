@@ -194,3 +194,30 @@ The plugin recursively:
 4. Returns a complete populate object
 
 This process handles all relation types including dynamic zones and circular references.
+
+----
+
+## Troubleshooting
+
+Due to the dynamic nature of Strapi, stuff becomes complex pretty quickly and it can sometimes become tricky to see the proverbial forest through the trees.
+In that case, feel free to open up an issue and I'll try to help you out.
+
+But first, make sure you:
+
+1. use the latest version of the plugin
+2. use the latest version of Strapi
+3. see if disabling the cache fixes the problem
+4. check if your content-types are still valid, e.g. no dynamic zones who reference deleted components etc.
+5. check you don't have attributes/relations marked as private if you expect them in the API response
+
+If that didn't fix it, open up that issue! Make sure you report the used versions (plugin & strapi) and preferably share the affected content-type definitions. Or even better, a reproduction of the problem.
+
+----
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Four-Lights-NL/strapi-plugin-deep-populate&type=date&legend=top-left)](https://www.star-history.com/#Four-Lights-NL/strapi-plugin-deep-populate&type=date&legend=top-left)
+
+Thanks for reading and using the plugin. If you like it, consider starring it to give me a nice little dopamine hit next time I'm working on it.
+
+### Built with ☕ in [Deventer, NL](https://en.wikipedia.org/wiki/Deventer).
