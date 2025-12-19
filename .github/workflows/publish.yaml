@@ -1,0 +1,51 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump_type:
+        description: 'Bump type'
+        required: false
+        type: choice
+        options:
+          - ''
+          - patch
+          - minor
+          - major
+      release_type:
+        description: 'Release type'
+        default: prod
+        required: false
+        type: choice
+        options:
+          - prod
+          - rc
+          - beta
+
+permissions:
+  id-token: write # Required for OIDC
+  contents: write # Required for npm beta version updates
+
+jobs:
+  validate:
+    name: Validate
+    uses: ./.github/workflows/validate.yaml
+
+  publish-prod:
+    if: github.event.inputs.release_type == 'prod'
+    uses: ./.github/workflows/release.yaml
+    with:
+      bump_type: github.event.inputs.bump_type
+    permissions:
+      id-token: write
+      contents: write
+
+  publish-prelease:
+    if: github.event.inputs.release_type != 'prod'
+    uses: ./.github/workflows/prerelease.yaml
+    with:
+      bump_type: github.event.inputs.bump_type
+      prerelease_type: github.event.inputs.release_type
+    permissions:
+      id-token: write
+      contents: write
