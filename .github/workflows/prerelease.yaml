@@ -1,6 +1,6 @@
 name: Pre-Release
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       bump_type:
         description: 'Bump type'
@@ -24,10 +24,6 @@ permissions:
   contents: write
 
 jobs:
-  validate:
-    name: Validate
-    uses: ./.github/workflows/validate.yaml
-
   publish:
     name: Publish
     needs: validate
