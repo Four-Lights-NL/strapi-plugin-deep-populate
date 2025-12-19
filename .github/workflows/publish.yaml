@@ -36,8 +36,6 @@ jobs:
     if: github.event.inputs.release_type == 'prod'
     uses: ./.github/workflows/release.yaml
     secrets: inherit
-    with:
-      bump_type: github.event.inputs.bump_type
     permissions:
       id-token: write
       contents: write
@@ -47,9 +45,6 @@ jobs:
     if: github.event.inputs.release_type != 'prod'
     uses: ./.github/workflows/prerelease.yaml
     secrets: inherit
-    with:
-      bump_type: github.event.inputs.bump_type
-      prerelease_type: github.event.inputs.release_type
     permissions:
       id-token: write
       contents: write
