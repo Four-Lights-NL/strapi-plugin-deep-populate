@@ -1,23 +1,18 @@
 name: Pre-Release
+
 on:
   workflow_call:
     inputs:
       bump_type:
         description: 'Bump type'
         required: false
-        type: choice
-        options:
-          - ''
-          - patch
-          - minor
-          - major
+        type: string
+        default: 'patch'
       prerelease_type:
         description: 'Prerelease'
         required: false
-        type: choice
-        options:
-          - beta
-          - rc
+        type: string
+        default: 'beta'
 
 permissions:
   id-token: write
