@@ -35,6 +35,7 @@ jobs:
     needs: validate
     if: github.event.inputs.release_type == 'prod'
     uses: ./.github/workflows/release.yaml
+    secrets: inherit
     with:
       bump_type: github.event.inputs.bump_type
     permissions:
@@ -45,6 +46,7 @@ jobs:
     needs: validate
     if: github.event.inputs.release_type != 'prod'
     uses: ./.github/workflows/prerelease.yaml
+    secrets: inherit
     with:
       bump_type: github.event.inputs.bump_type
       prerelease_type: github.event.inputs.release_type
