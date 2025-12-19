@@ -1,4 +1,5 @@
 name: Release
+
 on:
   workflow_call:
     inputs:
@@ -6,11 +7,7 @@ on:
         description: 'Bump type'
         required: true
         default: 'patch'
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+        type: string
 
 permissions:
   id-token: write
