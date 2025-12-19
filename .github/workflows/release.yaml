@@ -16,7 +16,6 @@ permissions:
 jobs:
   publish:
     name: Publish
-    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
