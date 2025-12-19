@@ -149,7 +149,26 @@ Settings are applied in the following priority order (highest to lowest):
 
 ### Caching
 
-The plugin caches populate objects to improve performance. Cache can be disabled via the `useCache` setting.
+The plugin caches populate objects to improve performance. Cache can be disabled
+via the `useCache` setting.  Cache entires are persisted in the database and can
+become stale after content-type updates. You can use the `cacheOptions > clearCacheOnStartup` to force cache purging on server start.
+
+#### Cache Configuration
+
+```js
+// config/plugins.js
+module.exports = ({ env }) => ({
+  'deep-populate': {
+    enabled: true,
+    config: {
+      useCache: true, // Enable caching (default: true)
+      cacheOptions: {
+        clearCacheOnStartup: false, // Clear cache on server startup (default: false)
+      }
+    }
+  }
+});
+```
 
 ### Creator Fields
 

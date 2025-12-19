@@ -20,8 +20,13 @@ export type ContentTypeConfig = {
   deny?: ContentTypeConfigDeny
 }
 
+export type CacheOptions = {
+  clearCacheOnStartup?: boolean
+}
+
 export type Config = {
   useCache: boolean
+  cacheOptions?: CacheOptions
   replaceWildcard: boolean
   omitEmpty?: boolean
   localizations?: boolean
