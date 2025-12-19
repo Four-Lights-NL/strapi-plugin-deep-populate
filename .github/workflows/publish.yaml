@@ -32,6 +32,7 @@ jobs:
     uses: ./.github/workflows/validate.yaml
 
   publish-prod:
+    needs: validate
     if: github.event.inputs.release_type == 'prod'
     uses: ./.github/workflows/release.yaml
     with:
@@ -41,6 +42,7 @@ jobs:
       contents: write
 
   publish-prelease:
+    needs: validate
     if: github.event.inputs.release_type != 'prod'
     uses: ./.github/workflows/prerelease.yaml
     with:
