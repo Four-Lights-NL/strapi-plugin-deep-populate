@@ -19,7 +19,9 @@ on:
           - beta
           - rc
 
-permissions: write-all
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   validate:
@@ -55,4 +57,3 @@ jobs:
         run: npm run release -- ${{ github.event.inputs.bump_type }} --ci --preRelease=${{ github.event.inputs.prerelease_type }}
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -13,6 +13,7 @@
     "releaseNotes": "node ./scripts/extract-changelog.mjs ${version}"
   },
   "npm": {
+    "skipChecks": true,
     "publish": true
   }
 }
