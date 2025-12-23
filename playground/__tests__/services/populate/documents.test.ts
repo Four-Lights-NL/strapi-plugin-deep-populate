@@ -49,4 +49,27 @@ describe("documents", () => {
       expect(documentWithCreatedBy.createdBy).toBeDefined()
     })
   })
+
+  describe("publish", () => {
+    test("should return fully populated document when provided with `*`", async () => {
+      const document = await strapi
+        .documents(contentType)
+        .publish({ documentId: context.page.documentId, populate: "*" })
+
+      const expected: Record<string, object> = {}
+      expected.nestedSection = context.nestedSection
+      expected.primarySection = {
+        ...context.primarySection,
+        sections: [expected.nestedSection],
+      }
+      expected.page = {
+        ...context.page,
+        sections: [expected.primarySection],
+      }
+
+      expect(get(document, "sections.0.sections.0")).toEqual(expected.nestedSection)
+      expect(get(document, "sections.0")).toEqual(expected.primarySection)
+      expect(document).toEqual(expected.page)
+    })
+  })
 })
