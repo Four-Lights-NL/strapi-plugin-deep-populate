@@ -45,18 +45,22 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const documentService = strapi.documents("plugin::deep-populate.cache")
     const hash = getHash(params)
 
-    const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
-
     try {
-      return entry
-        ? await documentService.update({
+      return await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
+    } catch (error) {
+      console.log(error)
+      if (error.message.includes("unique") || error.code === "23505") {
+        const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
+
+        if (entry) {
+          return await documentService.update({
             documentId: entry.documentId,
             data: { populate, dependencies: dependencies.join(",") } as Partial<
               Modules.Documents.Params.Data.Input<"plugin::deep-populate.cache">
             >,
           })
-        : await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
-    } catch (error: unknown) {
+        }
+      }
       log.error("[Plugin: Deep Populate] Failed to save cached entry", { error })
       return
     }
