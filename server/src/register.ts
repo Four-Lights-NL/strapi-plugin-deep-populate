@@ -14,6 +14,7 @@ import {
   removeDeepPopulateCacheFullTextIndex,
 } from "./migrations"
 import { asBoolean } from "./utils/asBoolean"
+import log from "./utils/log"
 import { majorMinorVersion } from "./utils/version"
 
 const populateIsWildcardEquivalent = async ({
@@ -59,7 +60,7 @@ export async function clearCacheForChangedContentTypes({
       const contentType = contentTypes[contentTypeUID]
 
       // If attributes have changed, we need to clear cached entries for this content-type
-      // NOTE: We omit `publishedAt` and `localizations.joinColumn` as those seem to be a side-effect from the afterSync hook we use.
+      // NOTE: We omit `publishedAt` and `localizations.joinColumn` as those seem to be a side effect from the afterSync hook we use.
       if (
         !isEqual(
           omit(oldContentType?.attributes, "publishedAt", "localizations.joinColumn"),
@@ -72,9 +73,7 @@ export async function clearCacheForChangedContentTypes({
           },
         })
 
-        strapi.log.debug(
-          `[Plugin: Deep Populate] Deleted ${deleted.count} cached entries due to out of date schema '${contentTypeUID}'`,
-        )
+        log.debug(`Deleted ${deleted.count} cached entries due to out of date schema '${contentTypeUID}'`)
       }
     })
   }

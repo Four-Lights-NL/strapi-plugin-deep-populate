@@ -55,7 +55,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
           })
         : await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
     } catch (error: unknown) {
-      log.error("[Plugin: Deep Populate] Failed to save cached entry", { error })
+      log.error("Failed to save cached entry", error)
       return
     }
   },

@@ -1,8 +1,14 @@
 import { name as pkgName } from "../../../package.json"
 
-export const error = (msg, context = undefined) => strapi.log.error(`[${pkgName}] ${msg}`, context)
-export const warn = (msg, context = undefined) => strapi.log.warn(`[${pkgName}] ${msg}`, context)
-export const info = (msg, context = undefined) => strapi.log.info(`[${pkgName}] ${msg}`, context)
-export const debug = (msg, context = undefined) => strapi.log.debug(`[${pkgName}] ${msg}`, context)
+const f = (msg: string, context = undefined) => {
+  const prefix = `[${pkgName}] `
+  const suffix = context !== undefined ? `\n${prefix}${context}` : ""
+  return `${prefix}${msg}${suffix}`
+}
+
+export const error = (msg: string, context = undefined) => strapi.log.error(f(msg, context))
+export const warn = (msg: string, context = undefined) => strapi.log.warn(f(msg, context))
+export const info = (msg: string, context = undefined) => strapi.log.info(f(msg, context))
+export const debug = (msg: string, context = undefined) => strapi.log.debug(f(msg, context))
 
 export default { error, warn, info, debug }
