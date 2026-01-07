@@ -51,11 +51,7 @@ export async function clearCacheForChangedContentTypes({
   contentTypes,
 }: StrapiContentTypesAfterSyncProps) {
   if (oldContentTypes !== undefined && contentTypes !== undefined) {
-    const contentTypesWithDraftAndPublish = Object.keys(oldContentTypes).filter(
-      (uid) => oldContentTypes[uid]?.options?.draftAndPublish,
-    )
-
-    await async.map(contentTypesWithDraftAndPublish, async (contentTypeUID: UID.ContentType) => {
+    await async.map(Object.keys(oldContentTypes), async (contentTypeUID: UID.ContentType) => {
       const oldContentType = oldContentTypes[contentTypeUID]
       const contentType = contentTypes[contentTypeUID]
 
