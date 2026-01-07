@@ -6,14 +6,12 @@ import isEqual from "lodash/isEqual"
 
 import type { PopulateParams } from "./populate"
 
-import { version } from "../../../package.json"
 import log from "../utils/log"
+import { majorMinorVersion } from "../utils/version"
 import { getConfig } from "./deep-populate/utils"
 
 type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
-
-const majorMinorVersion = version.split(".").slice(0, -1).join(".")
 
 const isEqualConfig = (lhs: object, rhs: object) => {
   const cleanedLhs = JSON.parse(JSON.stringify(lhs))
