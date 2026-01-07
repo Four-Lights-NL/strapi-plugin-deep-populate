@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.14.0] - 2026-01-07
+
+### Fixed
+
+- Cached entries will now correctly be invalidated when their dependent schemas have changed ([#123](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/123)) (Thomas Rijpstra)
+
 ## [1.13.0] - 2025-11-20
 
 ### Fixed
@@ -291,3 +297,5 @@ _:seedling: Initial release._
 [1.12.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.12.0
 
 [1.13.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.13.0
+
+[1.14.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.14.0
