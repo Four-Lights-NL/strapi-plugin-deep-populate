@@ -211,6 +211,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   populate = {},
   lookup = [],
   resolvedRelations,
+  resolvedSchemas,
   omitEmpty,
   __deny,
   __allow,
@@ -229,6 +230,9 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
   // Make sure we won't revisit this documentId from nested children
   resolvedRelations.set(params.documentId, true)
+
+  // Set this schema as resolved
+  resolvedSchemas.add(schema)
 
   // Make sure we retrieve all related objects one level below this on
   for (const [attrName, attr] of relations) {
@@ -325,6 +329,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         lookup,
         attrName,
         resolvedRelations,
+        resolvedSchemas,
         omitEmpty,
         __deny,
         __allow,
@@ -337,6 +342,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         contentType: attr.target as UID.ContentType,
         relation: value,
         resolvedRelations,
+        resolvedSchemas,
         omitEmpty,
         locale: params.locale,
         status: params.status,
@@ -353,6 +359,7 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         lookup,
         attrName,
         resolvedRelations,
+        resolvedSchemas,
         omitEmpty,
         __deny,
         __allow,
@@ -372,9 +379,12 @@ export default async function populate(params: PopulateParams) {
   const config = getConfig(params)
 
   const resolvedRelations = new Map()
+  const resolvedSchemas = new Set<UID.Schema>()
+
   const populated = (await _populate({
     schema: params.contentType,
     resolvedRelations,
+    resolvedSchemas,
     omitEmpty: config.omitEmpty,
     localizations: config.localizations,
     __deny: config.deny,
@@ -384,7 +394,10 @@ export default async function populate(params: PopulateParams) {
   populated.__deepPopulated = true
   populated.__deepPopulateConfig = config
 
-  // Remove content-types from resolvedRelations
-  const dependencies = [...resolvedRelations.keys()].filter((r) => !r.startsWith("api::"))
+  const dependencies = [
+    ...[...resolvedRelations.keys()].filter((r) => !r.startsWith("api::")), // Remove content-types from resolved relations
+    ...resolvedSchemas.values(),
+  ]
+
   return { populate: populated, dependencies }
 }
