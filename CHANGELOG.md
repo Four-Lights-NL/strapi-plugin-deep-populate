@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- Cached entries will now correctly be invalidated when their dependent schemas have changed ([#123](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/123)) (Thomas Rijpstra)
+- Cached entries are now correctly invalidated when their dependent schemas have changed ([#123](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/123)) (Thomas Rijpstra)
 - Cached entries are now persisted through an upsert, which prevents UNIQUE CONSTRAINT errors upon simultaneous cache inserts ([#126](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/126)) (Thomas Rijpstra)
 
 ## [1.14.0] - 2025-12-19
