@@ -1,11 +1,9 @@
 import type { Core, Schema, UID } from "@strapi/strapi"
 
 import { async, sanitize } from "@strapi/utils"
-import { omit } from "lodash"
 import cloneDeep from "lodash/cloneDeep"
 import has from "lodash/has"
 import isEmpty from "lodash/isEmpty"
-import isEqual from "lodash/isEqual"
 import unset from "lodash/unset"
 
 import {
@@ -15,7 +13,6 @@ import {
 } from "./migrations"
 import { asBoolean } from "./utils/asBoolean"
 import log from "./utils/log"
-import { majorMinorVersion } from "./utils/version"
 
 const populateIsWildcardEquivalent = async ({
   strapi,
@@ -48,8 +45,7 @@ export async function clearCacheForChangedSchemas(schemas: UID.Schema[]) {
       },
     })
 
-    // TODO: log.debug
-    log.info(`Deleted ${deleted.count} cached entries due to out of date schema '${schema}'`)
+    log.debug(`Deleted ${deleted.count} cached entries due to out of date schema '${schema}'`)
   })
 }
 
