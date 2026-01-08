@@ -6,6 +6,7 @@ import isEqual from "lodash/isEqual"
 
 import type { PopulateParams } from "./populate"
 
+import { isUniqueConstraintError } from "../utils/isUniqueConstraintError"
 import log from "../utils/log"
 import { majorMinorVersion } from "../utils/version"
 import { getConfig } from "./deep-populate/utils"
@@ -45,8 +46,8 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     try {
       return await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
-    } catch (error) {
-      if (error?.code?.includes("UNIQUE")) {
+    } catch (error: unknown) {
+      if (isUniqueConstraintError(error)) {
         const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
 
         if (entry) {
