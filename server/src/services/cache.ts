@@ -6,6 +6,7 @@ import isEqual from "lodash/isEqual"
 
 import type { PopulateParams } from "./populate"
 
+import { isUniqueConstraintError } from "../utils/isUniqueConstraintError"
 import log from "../utils/log"
 import { majorMinorVersion } from "../utils/version"
 import { getConfig } from "./deep-populate/utils"
@@ -43,20 +44,23 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     const documentService = strapi.documents("plugin::deep-populate.cache")
     const hash = getHash(params)
 
-    const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
-
     try {
-      return entry
-        ? await documentService.update({
+      return await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
+    } catch (error: unknown) {
+      if (isUniqueConstraintError(error)) {
+        const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
+
+        if (entry) {
+          return await documentService.update({
             documentId: entry.documentId,
             data: { populate, dependencies: dependencies.join(",") } as Partial<
               Modules.Documents.Params.Data.Input<"plugin::deep-populate.cache">
             >,
           })
-        : await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
-    } catch (error: unknown) {
+        }
+      }
+
       log.error("Failed to save cached entry", error)
-      return
     }
   },
   async clear(params: PopulateParams) {
