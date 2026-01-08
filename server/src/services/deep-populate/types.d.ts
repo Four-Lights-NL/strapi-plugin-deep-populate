@@ -1,10 +1,12 @@
 import type { Data, Modules, UID } from "@strapi/strapi"
+
 import type { ContentTypeConfigAllow, ContentTypeConfigDeny } from "../../config"
 
 type PopulateType = Record<string, "*" | { populate: unknown } | { on: Record<`${string}.${string}`, unknown> }> | true
 
 type PopulateInternalProps = {
   resolvedRelations: Map<string, PopulateType>
+  resolvedSchemas: Set<UID.ContentType>
   omitEmpty?: boolean
   localizations?: boolean
   __deny?: ContentTypeConfigDeny
@@ -37,7 +39,9 @@ export type PopulateRelationProps<TContentType extends UID.ContentType> = Popula
 
 export type PopulateProps<TContentType extends UID.ContentType, TSchema extends UID.Schema> = Omit<
   PopulateBaseProps<TContentType, TSchema>,
-  "resolvedRelations"
+  "resolvedRelations",
+  "resolvedSchemas"
 > & {
   resolvedRelations?: Map<string, PopulateType>
+  resolvedSchemas?: Set<UID.Schema>
 }
