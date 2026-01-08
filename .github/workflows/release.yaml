@@ -5,7 +5,7 @@ on:
     inputs:
       bump_type:
         description: 'Bump type'
-        required: true
+        required: false
         default: 'patch'
         type: string
 
