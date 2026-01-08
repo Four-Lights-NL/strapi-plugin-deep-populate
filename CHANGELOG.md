@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.15.0] - 2026-01-08
+
+### Fixed
+
+- Cached entries are now correctly invalidated when their dependent schemas have changed ([#123](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/123)) (Thomas Rijpstra)
+- Cached entries are now persisted through an upsert, which prevents UNIQUE CONSTRAINT errors upon simultaneous cache inserts ([#126](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/126)) (Thomas Rijpstra)
+
+## [1.14.0] - 2025-12-19
+
+### Added
+
+- Add `clearCacheOnStartup` configuration flag for more control on cache behaviour ([#114](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/114)) (Thomas Rijpstra)
+
 ## [1.13.0] - 2025-11-20
 
 ### Fixed
@@ -291,3 +304,7 @@ _:seedling: Initial release._
 [1.12.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.12.0
 
 [1.13.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.13.0
+
+[1.14.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.14.0
+
+[1.15.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.15.0
