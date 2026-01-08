@@ -40,55 +40,53 @@ const populateIsWildcardEquivalent = async ({
   return populate === "*" || populate === true || JSON.stringify(expandedWildcardQuery) === JSON.stringify(populate)
 }
 
-interface StrapiContentTypesAfterSyncProps {
-  oldContentTypes: Record<string, Schema.ContentType>
-  contentTypes: Record<string, Schema.ContentType>
-}
-
-// Based on https://github.com/strapi/strapi/blob/f86041c89a8c1545c6437a881dc613e98bc52bd7/packages/core/content-releases/server/src/migrations/index.ts#L127
-export async function clearCacheForChangedContentTypes({
-  oldContentTypes,
-  contentTypes,
-}: StrapiContentTypesAfterSyncProps) {
-  if (oldContentTypes !== undefined && contentTypes !== undefined) {
-    await async.map(Object.keys(oldContentTypes), async (contentTypeUID: UID.ContentType) => {
-      const oldContentType = oldContentTypes[contentTypeUID]
-      const contentType = contentTypes[contentTypeUID]
-
-      // If attributes have changed, we need to clear cached entries for this content-type
-      // NOTE: We omit `publishedAt` and `localizations.joinColumn` as those seem to be a side effect from the afterSync hook we use.
-      if (
-        !isEqual(
-          omit(oldContentType?.attributes, "publishedAt", "localizations.joinColumn"),
-          omit(contentType?.attributes, "publishedAt", "localizations.joinColumn"),
-        )
-      ) {
-        const deleted = await strapi.db.query("plugin::deep-populate.cache").deleteMany({
-          where: {
-            hash: { $startsWith: `${majorMinorVersion}-${contentTypeUID}` },
-          },
-        })
-
-        log.debug(`Deleted ${deleted.count} cached entries due to out of date schema '${contentTypeUID}'`)
-      }
+export async function clearCacheForChangedSchemas(schemas: UID.Schema[]) {
+  await async.map(schemas, async (schema: UID.Schema) => {
+    const deleted = await strapi.db.query("plugin::deep-populate.cache").deleteMany({
+      where: {
+        dependencies: { $contains: schema },
+      },
     })
-  }
+
+    // TODO: log.debug
+    log.info(`Deleted ${deleted.count} cached entries due to out of date schema '${schema}'`)
+  })
 }
 
 export default async ({ strapi }) => {
-  strapi.hook("strapi::content-types.afterSync").register(async (afterSyncProps: StrapiContentTypesAfterSyncProps) => {
-    const tableName = "populate_cache"
+  strapi.hook("strapi::content-types.beforeSync").register(async () => {
+    const databaseSchema = await strapi.db.dialect.schemaInspector.getSchema()
+    const storedSchema = await strapi.db.schema.schemaStorage.read()
+
+    const { status, diff } = await strapi.db.schema.schemaDiff.diff({
+      previousSchema: storedSchema?.schema,
+      databaseSchema,
+      userSchema: strapi.db.schema.schema,
+    })
+
+    if (status === "CHANGED") {
+      const updatedTables: string[] = (diff.tables.updated ?? []).map((t) => t.name)
+      const updatedSchemas: UID.Schema[] = [...strapi.db.metadata.values()]
+        .filter((m) => updatedTables.includes(m.tableName))
+        .map((m) => m.uid)
+
+      const tableName = strapi.db.metadata.get("plugin::deep-populate.cache").tableName
+      const hasTable = await strapi.db.connection.schema.hasTable(tableName)
+
+      // NOTE: We clear the cached entries for changed content types even if the cache is currently disabled
+      // because we can only hook into the change _when_ it is applied.
+      // So instead of `cacheIsEnabled` we _only_ check if the cache table exist.
+      if (hasTable) await clearCacheForChangedSchemas(updatedSchemas)
+    }
+  })
+  strapi.hook("strapi::content-types.afterSync").register(async () => {
+    const tableName = strapi.db.metadata.get("plugin::deep-populate.cache").tableName
     const columnName = "dependencies"
 
     const hasIndex = await hasDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
     const hasTable = await strapi.db.connection.schema.hasTable(tableName)
     const hasColumn = hasTable && (await strapi.db.connection.schema.hasColumn(tableName, columnName))
     const cacheIsEnabled = strapi.config.get("plugin::deep-populate").useCache === true
-
-    // NOTE: We clear the cached entries for changed content types even if the cache is currently disabled
-    // because we can only hook into the change _when_ it is applied.
-    // So instead of `cacheIsEnabled` we _only_ check if the cache table exist.
-    if (hasTable) await clearCacheForChangedContentTypes(afterSyncProps)
 
     const shouldCreateIndex = cacheIsEnabled && hasTable && hasColumn && !hasIndex
     const shouldRemoveIndex = hasIndex && (!cacheIsEnabled || !hasTable || !hasColumn)
