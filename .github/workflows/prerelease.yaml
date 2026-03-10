@@ -13,6 +13,10 @@ on:
         required: false
         type: string
         default: 'beta'
+    secrets:
+      PAT_TOKEN:
+        description: 'Personal Access Token for checkout and release'
+        required: true
 
 permissions:
   id-token: write

@@ -8,6 +8,10 @@ on:
         required: false
         default: 'patch'
         type: string
+    secrets:
+      PAT_TOKEN:
+        description: 'Personal Access Token for checkout and release'
+        required: true
 
 permissions:
   id-token: write
