@@ -59,10 +59,10 @@ export const getConfig = (params: PopulateParams) => {
     localizations: localizationsFallback,
     contentTypes,
   } = strapi.config.get("plugin::deep-populate") as Config
-  const contentTypeConfig = has(contentTypes, "*") ? get(contentTypes, "*") : {}
-  if (has(contentTypes, params.contentType)) {
-    mergeWith(contentTypeConfig, sanitizeObject(get(contentTypes, params.contentType)))
-  }
+  const baseConfig = has(contentTypes, "*") ? get(contentTypes, "*") : {}
+  const contentTypeConfig = has(contentTypes, params.contentType)
+    ? mergeWith({}, baseConfig, sanitizeObject(get(contentTypes, params.contentType)))
+    : baseConfig
   const { allow, deny } = contentTypeConfig
   const omitEmpty = params.omitEmpty ?? contentTypeConfig.omitEmpty ?? omitEmptyFallback
   const localizations = params.localizations ?? contentTypeConfig.localizations ?? localizationsFallback

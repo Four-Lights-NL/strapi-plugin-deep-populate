@@ -1,6 +1,7 @@
 import type { Data, Schema, UID } from "@strapi/strapi"
 
 import { contentTypes } from "@strapi/utils"
+import clone from "lodash/clone"
 import cloneDeep from "lodash/cloneDeep"
 import get from "lodash/get"
 import merge from "lodash/merge"
@@ -387,8 +388,8 @@ export default async function populate(params: PopulateParams) {
     resolvedSchemas,
     omitEmpty: config.omitEmpty,
     localizations: config.localizations,
-    __deny: config.deny,
-    __allow: config.allow,
+    __deny: clone(config.deny),
+    __allow: clone(config.allow),
     ...params,
   })) as Record<string, unknown>
   populated.__deepPopulated = true
