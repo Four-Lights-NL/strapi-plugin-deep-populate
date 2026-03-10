@@ -8,11 +8,6 @@ on:
         required: false
         default: 'patch'
         type: string
-    secrets:
-      PAT_TOKEN:
-        description: 'Personal Access Token for checkout and release'
-        required: true
-
 permissions:
   id-token: write
   contents: write
@@ -26,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ github.token }}
 
       - name: Prepare
         uses: ./.github/actions/prepare
@@ -45,4 +40,4 @@ jobs:
       - name: Run release
         run: npm run release -- --ci -i ${{ github.event.inputs.bump_type }}
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
