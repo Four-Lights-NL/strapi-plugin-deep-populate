@@ -42,15 +42,19 @@ export const setupDocuments = async (linkToPageId?: string) => {
     populate: {
       target: true,
       localizations: { populate: "*" },
-      singleCoolComponent: { populate: { specialRepeatable: { populate: { users: true } }, specialSingle: true } },
-      coolitems: { populate: { specialRepeatable: { populate: { users: true } }, specialSingle: true } },
+      singleCoolComponent: {
+        populate: { specialRepeatable: { populate: { users: true, linkedSections: true } }, specialSingle: true },
+      },
+      coolitems: {
+        populate: { specialRepeatable: { populate: { users: true, linkedSections: true } }, specialSingle: true },
+      },
       sections: true,
       blocks: {
         on: {
           "cms.cool-component": {
             populate: {
-              specialSingle: { populate: { users: true } },
-              specialRepeatable: { populate: { users: true } },
+              specialSingle: { populate: { users: true, linkedSections: true } },
+              specialRepeatable: { populate: { users: true, linkedSections: true } },
             },
           },
           "cms.special": { populate: "*" },
@@ -104,13 +108,15 @@ export const setupDocuments = async (linkToPageId?: string) => {
       target: true,
       singleCoolComponent: true,
       localizations: { populate: "*" },
-      coolitems: { populate: { specialSingle: true, specialRepeatable: { populate: { users: true } } } },
+      coolitems: {
+        populate: { specialSingle: true, specialRepeatable: { populate: { users: true, linkedSections: true } } },
+      },
       blocks: {
         on: {
           "cms.cool-component": {
             populate: {
-              specialSingle: { populate: { users: true } },
-              specialRepeatable: { populate: { users: true } },
+              specialSingle: { populate: { users: true, linkedSections: true } },
+              specialRepeatable: { populate: { users: true, linkedSections: true } },
             },
           },
           "cms.special": { populate: "*" },

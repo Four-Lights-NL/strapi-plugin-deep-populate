@@ -156,6 +156,34 @@ describe("get", () => {
       })
     })
 
+    test("repeatable component with a to-many relation, multiple instances", async () => {
+      const linkedSectionOne = await strapi.documents(contentType).create({ data: { name: "linked-section-one" } })
+      const linkedSectionTwo = await strapi.documents(contentType).create({ data: { name: "linked-section-two" } })
+
+      const { documentId } = await strapi.documents(contentType).create({
+        data: {
+          name: "repeatable-component-with-to-many-relation",
+          singleCoolComponent: {
+            title: "single",
+            isCool: true,
+            text: "single component with a repeatable sub-component holding a to-many relation",
+            specialRepeatable: [
+              { isSpecial: false, name: "first", linkedSections: { connect: [linkedSectionOne.documentId] } },
+              { isSpecial: true, name: "second", linkedSections: { connect: [linkedSectionTwo.documentId] } },
+            ],
+          },
+        },
+      })
+
+      // Regression test: when a to-many relation (oneToMany/manyToMany) lives on a component that
+      // is itself repeatable, and there are 2+ instances of that component, `_resolveValue` used to
+      // produce an array of arrays instead of a flat array, which crashed `_populateRelation`.
+      const populate = await service.get({ contentType, documentId, omitEmpty: true })
+      expect(populate.singleCoolComponent).toStrictEqual({
+        populate: { specialRepeatable: { populate: { linkedSections: true } } },
+      })
+    })
+
     test("dynamiczone", async () => {
       const { documentId } = await strapi.documents(contentType).create({
         data: {
