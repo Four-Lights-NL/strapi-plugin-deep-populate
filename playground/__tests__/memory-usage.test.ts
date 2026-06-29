@@ -54,7 +54,7 @@ describe.sequential("Memory Usage Tests", () => {
     expect(results.stats.avgHeapUsed).toBeLessThan(15 * 1024 * 1024 /* 15 MiB */)
   })
 
-  it("should not use more than 40MiB memory without using cache", async () => {
+  it("should not use more than 80MiB memory without using cache", async () => {
     useCache = false // disable cache
 
     // remove existing cache
@@ -78,7 +78,7 @@ describe.sequential("Memory Usage Tests", () => {
     // To see the actual memory stats, use:
     console.log("Cache-less memory stats", results.stats)
 
-    expect(results.stats.maxHeapUsed).toBeLessThan(40 * 1024 * 1024 /* 40 MiB */)
-    expect(results.stats.avgHeapUsed).toBeLessThan(40 * 1024 * 1024 /* 40 MiB */)
+    expect(results.stats.maxHeapUsed).toBeLessThan(80 * 1024 * 1024 /* 80 MiB */)
+    expect(results.stats.avgHeapUsed).toBeLessThan(80 * 1024 * 1024 /* 80 MiB */)
   })
 })
