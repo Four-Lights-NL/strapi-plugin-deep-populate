@@ -105,7 +105,10 @@ async function _populateRelation<TContentType extends UID.ContentType>({
   ...params
 }: PopulateRelationProps<TContentType>) {
   const isSingleRelation = !Array.isArray(relation)
-  const relations = isSingleRelation ? [relation] : relation
+  // When a to-many relation is defined on a component that is itself repeatable, `_resolveValue`
+  // maps the relation across each component instance, producing an array of arrays (one per
+  // instance) instead of a flat array of related entities. Flatten it here to normalize both shapes.
+  const relations = (isSingleRelation ? [relation] : relation).flat() as Data.Entity<TContentType>[]
 
   // Forward pass to prevent circular references
   const nonResolvedRelations = relations.filter(
