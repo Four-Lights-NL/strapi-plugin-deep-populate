@@ -43,20 +43,25 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async set({ populate, dependencies, ...params }: SetPopulateParams) {
     const documentService = strapi.documents("plugin::deep-populate.cache")
     const hash = getHash(params)
+    const data = { populate, dependencies: dependencies.join(",") } as Partial<
+      Modules.Documents.Params.Data.Input<"plugin::deep-populate.cache">
+    >
 
     try {
-      return await documentService.create({ data: { hash, params, populate, dependencies: dependencies.join(",") } })
+      const existing = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
+
+      if (existing) {
+        return await documentService.update({ documentId: existing.documentId, data })
+      }
+
+      return await documentService.create({ data: { hash, params, ...data } })
     } catch (error: unknown) {
+      // Guard against the rare race condition where two concurrent requests both
+      // see no entry and both attempt to create — one will hit a duplicate key error.
       if (isUniqueConstraintError(error)) {
         const entry = await documentService.findFirst({ filters: { hash: { $eq: hash } } })
-
         if (entry) {
-          return await documentService.update({
-            documentId: entry.documentId,
-            data: { populate, dependencies: dependencies.join(",") } as Partial<
-              Modules.Documents.Params.Data.Input<"plugin::deep-populate.cache">
-            >,
-          })
+          return await documentService.update({ documentId: entry.documentId, data })
         }
       }
 

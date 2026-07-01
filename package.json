@@ -37,7 +37,7 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.6",
+    "@biomejs/biome": "^2.5.1",
     "@strapi/database": "^5.31.0",
     "@strapi/sdk-plugin": "^5.3.2",
     "@strapi/strapi": "^5.31.0",
