@@ -58,7 +58,39 @@ jobs:
           git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
+      - name: Determine effective bump type
+        id: bump
+        env:
+          REQUESTED_BUMP: ${{ inputs.bump_type }}
+          RELEASE_TYPE: ${{ inputs.release_type }}
+        run: |
+          node -e "
+            const semver = require('semver');
+            const current = require('./package.json').version;
+            const pre = semver.prerelease(current);
+            const requestedBump = process.env.REQUESTED_BUMP;
+            const releaseType = process.env.RELEASE_TYPE;
+            let effective;
+            if (pre) {
+              // main is already sitting on a prerelease (e.g. 1.16.0-rc.0). A plain
+              // patch/minor/major bump would incorrectly jump the major.minor.patch
+              // (e.g. minor => 1.17.0-rc.0) instead of continuing the existing chain.
+              // 'prerelease' is the only correct increment here: it advances the
+              // counter within the same channel, or restarts at .0 when switching
+              // prerelease channels (e.g. beta -> rc) - never touches major.minor.patch.
+              effective = 'prerelease';
+              console.log('::notice::main is already on prerelease ' + current + '; forcing increment=prerelease (ignoring bump_type=\"' + requestedBump + '\") to avoid an unintended major.minor.patch bump.');
+            } else {
+              if (!requestedBump) {
+                console.error('bump_type is required to start a new ' + releaseType + ' series from a non-prerelease version (' + current + ').');
+                process.exit(1);
+              }
+              effective = requestedBump;
+            }
+            require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'increment=' + effective + '\n');
+          "
+
       - name: Run release
-        run: npm run release -- ${{ github.event.inputs.bump_type }} --ci --preRelease=${{ github.event.inputs.release_type }}
+        run: npm run release -- ${{ steps.bump.outputs.increment }} --ci --preRelease=${{ inputs.release_type }}
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
