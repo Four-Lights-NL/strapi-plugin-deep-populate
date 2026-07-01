@@ -1,5 +1,14 @@
 name: 'Prepare'
 description: 'Prepares the node environment and installs npm packages'
+inputs:
+  cache-enabled:
+    description: >-
+      Whether to enable npm dependency caching. Disable this for
+      publish/release jobs that hold OIDC/id-token credentials, since a
+      shared cache key is a possible vector for injecting code into a
+      privileged job.
+    required: false
+    default: 'true'
 runs:
   using: 'composite'
   steps:
@@ -8,10 +17,34 @@ runs:
       with:
         node-version: 24
         registry-url: 'https://registry.npmjs.org'
-        cache: 'npm'
+        cache: ${{ inputs.cache-enabled == 'true' && 'npm' || '' }}
+        package-manager-cache: ${{ inputs.cache-enabled }}
         cache-dependency-path: |
           package-lock.json
 
     - name: Install packages
       shell: bash
       run: npm ci
+
+    # actions/setup-node unconditionally writes a `_authToken` line to the
+    # generated .npmrc whenever `registry-url` is set, even when no
+    # NODE_AUTH_TOKEN secret is configured — it exports NODE_AUTH_TOKEN as
+    # the literal placeholder 'XXXXX-XXXXX-XXXXX-XXXXX' in that case. This
+    # repo has no NPM_TOKEN/NODE_AUTH_TOKEN secret anywhere and publishes
+    # exclusively via npm Trusted Publishing (OIDC), so that placeholder
+    # line must be stripped or npm's CLI treats it as valid auth and skips
+    # the OIDC exchange, breaking `npm publish` in release jobs.
+    #
+    # Only strip the line when NODE_AUTH_TOKEN is unset or still the
+    # setup-node placeholder, so a real token (if ever reintroduced as a
+    # fallback for this pipeline) is never silently discarded.
+    # Workaround for open actions/setup-node issues #1445/#1551/#1960.
+    - name: Fix npm OIDC auth (strip broken _authToken line)
+      shell: bash
+      run: |
+        if [ -z "${NODE_AUTH_TOKEN:-}" ] || [ "$NODE_AUTH_TOKEN" = "XXXXX-XXXXX-XXXXX-XXXXX" ]; then
+          npmrc="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          if [ -f "$npmrc" ]; then
+            sed -i '/_authToken/d' "$npmrc"
+          fi
+        fi
