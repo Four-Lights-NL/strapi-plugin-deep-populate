@@ -37,6 +37,9 @@ jobs:
     uses: ./.github/workflows/release.yaml
     with:
       bump_type: ${{ github.event.inputs.bump_type }}
+    secrets:
+      RELEASE_APP_ID: ${{ secrets.RELEASE_APP_ID }}
+      RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
     permissions:
       id-token: write
       contents: write
@@ -48,6 +51,9 @@ jobs:
     with:
       bump_type: ${{ github.event.inputs.bump_type }}
       release_type: ${{ github.event.inputs.release_type }}
+    secrets:
+      RELEASE_APP_ID: ${{ secrets.RELEASE_APP_ID }}
+      RELEASE_APP_PRIVATE_KEY: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
     permissions:
       id-token: write
       contents: write

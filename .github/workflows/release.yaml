@@ -8,6 +8,13 @@ on:
         required: false
         default: 'patch'
         type: string
+    secrets:
+      RELEASE_APP_ID:
+        description: 'App ID of the GitHub App allowed to bypass branch protection on main for releases'
+        required: true
+      RELEASE_APP_PRIVATE_KEY:
+        description: 'Private key of the GitHub App allowed to bypass branch protection on main for releases'
+        required: true
 permissions:
   id-token: write
   contents: write
@@ -17,11 +24,18 @@ jobs:
     name: Publish
     runs-on: ubuntu-latest
     steps:
+      - name: Generate release token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
-          token: ${{ github.token }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Prepare
         uses: ./.github/actions/prepare
@@ -36,10 +50,10 @@ jobs:
 
       - name: Config Git
         run: |
-          git config user.name "${GITHUB_ACTOR}"
-          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
 
       - name: Run release
         run: npm run release -- --ci -i ${{ github.event.inputs.bump_type }}
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
