@@ -15,15 +15,20 @@ const UniqueConstraintErrorCodes = {
 } as const
 
 export const isUniqueConstraintError = (error: unknown): boolean => {
-  const err = error as { code?: string; errno?: number; number?: number }
+  const err = error as { code?: string; errno?: number; number?: number; cause?: unknown; originalError?: unknown; parent?: unknown }
+  const cause = (err.cause || err.originalError || err.parent || {}) as { code?: string; errno?: number; number?: number }
+
+  const errno = err.errno ?? cause.errno
+  const code = err.code ?? cause.code
+  const number = err.number ?? cause.number
 
   return (
-    Object.keys(UniqueConstraintErrorCodes).includes(err.code) ||
-    err.code === UniqueConstraintErrorCodes.POSTGRES_UNIQUE_VIOLATION ||
-    err.errno === UniqueConstraintErrorCodes.MYSQL_DUPLICATE_ENTRY ||
-    err.errno === UniqueConstraintErrorCodes.SQLITE_CONSTRAINT ||
-    err.errno === UniqueConstraintErrorCodes.SQLITE_CONSTRAINT_UNIQUE ||
-    err.number === UniqueConstraintErrorCodes.SQLSERVER_DUPLICATE_KEY ||
-    err.number === UniqueConstraintErrorCodes.SQLSERVER_UNIQUE_KEY_VIOLATION
+    Object.keys(UniqueConstraintErrorCodes).includes(code) ||
+    code === UniqueConstraintErrorCodes.POSTGRES_UNIQUE_VIOLATION ||
+    errno === UniqueConstraintErrorCodes.MYSQL_DUPLICATE_ENTRY ||
+    errno === UniqueConstraintErrorCodes.SQLITE_CONSTRAINT ||
+    errno === UniqueConstraintErrorCodes.SQLITE_CONSTRAINT_UNIQUE ||
+    number === UniqueConstraintErrorCodes.SQLSERVER_DUPLICATE_KEY ||
+    number === UniqueConstraintErrorCodes.SQLSERVER_UNIQUE_KEY_VIOLATION
   )
 }
