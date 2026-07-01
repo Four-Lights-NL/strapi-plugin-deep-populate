@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@fourlights/strapi-plugin-deep-populate": "../",
-    "@strapi/plugin-users-permissions": "^5.31.0",
+    "@strapi/plugin-users-permissions": "^5.45.0",
     "@strapi/strapi": "^5.31.0",
     "better-sqlite3": "^12.4.1",
     "react": "^18.3.1",
