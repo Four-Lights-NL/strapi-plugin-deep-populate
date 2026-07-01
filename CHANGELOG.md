@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.16.0] - 2026-06-30
+
+🎉 A big thank you to [@sehrish30](https://github.com/sehrish30) for their first contributions to this plugin!
+
+### Fixed
+
+- Configuration objects for `deny` and `allow` lists are now cloned before being passed to the populate function, preventing cached config pollution where a content-type-specific configuration could mutate the shared wildcard configuration ([#138](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/138)) (Thomas Rijpstra)
+- Flatten to-many relations on repeatable components to prevent a crash when a component is repeated 2+ times, where the relation was previously produced as an array of arrays instead of a flat array ([#142](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/142)) (Sehrish Waheed)
+- Cache entries are now updated in place instead of always attempting an insert first, and MySQL duplicate-entry errors are correctly detected even when Knex wraps them in `err.cause`, `err.originalError`, or `err.parent`, preventing spurious "Failed to save cached entry" errors when the same document is populated more than once ([#145](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/145)) (Sehrish Waheed)
+
+### Changed
+
+- Updated dependencies to latest versions across the plugin, playground, and test harness to pull in upstream security patches ([#127](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/127), [#128](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/128), [#130](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/130), [#131](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/131), [#132](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/132), [#133](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/133), [#134](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/134), [#137](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/137), [#139](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/139), [#148](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/148), [#149](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/149)) (Thomas Rijpstra)
+
 ## [1.15.0] - 2026-01-08
 
 ### Fixed
@@ -308,3 +322,5 @@ _:seedling: Initial release._
 [1.14.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.14.0
 
 [1.15.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.15.0
+
+[1.16.0]: https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/releases/tag/v1.16.0
