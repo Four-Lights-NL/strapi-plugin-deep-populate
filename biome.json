@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.5/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.0/schema.json",
   "vcs": {
     "enabled": false,
     "clientKind": "git",
@@ -29,17 +29,35 @@
           "level": "on",
           "options": {
             "groups": [
-              { "source": [":BUN:", ":NODE:"], "type": true },
+              {
+                "source": [":BUN:", ":NODE:"],
+                "type": true
+              },
               ":BLANK_LINE:",
-              { "source": [":BUN:", ":NODE:"], "type": false },
+              {
+                "source": [":BUN:", ":NODE:"],
+                "type": false
+              },
               ":BLANK_LINE:",
-              { "source": [":PACKAGE:", ":BLANK_LINE:"], "type": true },
+              {
+                "source": [":PACKAGE:"],
+                "type": true
+              },
               ":BLANK_LINE:",
-              { "source": [":PACKAGE:", ":BLANK_LINE:"], "type": false },
+              {
+                "source": [":PACKAGE:"],
+                "type": false
+              },
               ":BLANK_LINE:",
-              { "source": [":ALIAS:", ":PATH:"], "type": true },
+              {
+                "source": [":ALIAS:", ":PATH:"],
+                "type": true
+              },
               ":BLANK_LINE:",
-              { "source": [":ALIAS:", ":PATH:"], "type": false }
+              {
+                "source": [":ALIAS:", ":PATH:"],
+                "type": false
+              }
             ]
           }
         },
@@ -52,7 +70,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "style": {
         "noParameterAssign": "error",
         "useAsConstAssertion": "error",

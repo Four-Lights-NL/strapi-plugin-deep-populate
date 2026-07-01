@@ -15,8 +15,19 @@ const UniqueConstraintErrorCodes = {
 } as const
 
 export const isUniqueConstraintError = (error: unknown): boolean => {
-  const err = error as { code?: string; errno?: number; number?: number; cause?: unknown; originalError?: unknown; parent?: unknown }
-  const cause = (err.cause || err.originalError || err.parent || {}) as { code?: string; errno?: number; number?: number }
+  const err = error as {
+    code?: string
+    errno?: number
+    number?: number
+    cause?: unknown
+    originalError?: unknown
+    parent?: unknown
+  }
+  const cause = (err.cause || err.originalError || err.parent || {}) as {
+    code?: string
+    errno?: number
+    number?: number
+  }
 
   const errno = err.errno ?? cause.errno
   const code = err.code ?? cause.code
