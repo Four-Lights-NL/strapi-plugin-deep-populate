@@ -4,9 +4,9 @@ import get from "lodash/get"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 
+import type { Config } from "../config"
 import type { PopulateParams } from "./populate"
 
-import type { Config } from "../config"
 import { isUniqueConstraintError } from "../utils/isUniqueConstraintError"
 import log from "../utils/log"
 import { majorMinorVersion } from "../utils/version"
