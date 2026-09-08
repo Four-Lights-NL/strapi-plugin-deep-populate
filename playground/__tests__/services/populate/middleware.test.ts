@@ -289,7 +289,7 @@ describe("lifecycle", () => {
     })
   })
 
-  describe("cache with warmOnWrite)", () => {
+  describe("cache with warmOnWrite", () => {
     let cacheService: Core.Service
     let getCacheSpy: ReturnType<typeof vitest.spyOn>
     let setCacheSpy: ReturnType<typeof vitest.spyOn>
