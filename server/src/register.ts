@@ -92,7 +92,8 @@ export default async ({ strapi }) => {
   })
 
   strapi.documents.use(async (context, next) => {
-    const { useCache, replaceWildcard } = strapi.config.get("plugin::deep-populate")
+    const { useCache, replaceWildcard, cacheOptions } = strapi.config.get("plugin::deep-populate")
+    const warmOnWrite = cacheOptions?.warmOnWrite === true
 
     if (
       // do nothing if not configured
@@ -132,12 +133,15 @@ export default async ({ strapi }) => {
 
       if (refreshCache) await cacheService.clear({ ...context.params, status, contentType: context.uid })
 
-      if (useCache || returnDeeplyPopulated) {
+      if (returnDeeplyPopulated) {
         const deepPopulate = await populateService.get({ contentType: context.uid, documentId, status, locale })
-        if (returnDeeplyPopulated)
-          return await strapi
-            .documents(context.uid)
-            .findOne({ documentId, status, locale, fields: originalFields, populate: deepPopulate })
+        return await strapi
+          .documents(context.uid)
+          .findOne({ documentId, status, locale, fields: originalFields, populate: deepPopulate })
+      }
+
+      if (useCache && warmOnWrite) {
+        await populateService.get({ contentType: context.uid, documentId, status, locale })
       }
     }
 
