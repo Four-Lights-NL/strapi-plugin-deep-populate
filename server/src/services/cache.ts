@@ -4,6 +4,7 @@ import get from "lodash/get"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 
+import type { Config } from "../config"
 import type { PopulateParams } from "./populate"
 
 import { isUniqueConstraintError } from "../utils/isUniqueConstraintError"
@@ -102,7 +103,9 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     if (deleted.count !== entries.length)
       console.error(`Deleted count ${deleted.count} does not match entries count ${entries.length}`)
 
-    // Then, in batches, re-populate the entries
+    const { cacheOptions } = strapi.config.get("plugin::deep-populate") as Config
+    if (cacheOptions?.warmOnWrite !== true) return
+
     const batchSize = 5
     for (let i = 0; i < entries.length; i += batchSize) {
       const batch = entries.slice(i, i + batchSize)

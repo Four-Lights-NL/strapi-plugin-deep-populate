@@ -136,7 +136,7 @@ describe("lifecycle", () => {
     })
   })
 
-  describe("cache", () => {
+  describe("cache with no warmOnWrite", () => {
     let cacheService: Core.Service
     let getCacheSpy: ReturnType<typeof vitest.spyOn>
     let setCacheSpy: ReturnType<typeof vitest.spyOn>
@@ -152,10 +152,19 @@ describe("lifecycle", () => {
       setCacheSpy.mockReset()
     })
 
-    test("create should fill the cache", async () => {
-      // Create new document, which triggers the cache
-      await strapi.documents(contentType).create({ data: { name: "cached" } })
+    test("create should not warm the cache in lazy mode", async () => {
+      const created = await strapi.documents(contentType).create({ data: { name: "cached" } })
 
+      expect(getCacheSpy).toHaveBeenCalledTimes(0)
+      expect(setCacheSpy).toHaveBeenCalledTimes(0)
+
+      // Next read should populate the cache via the cache-miss path
+      const document = await strapi.documents(contentType).findOne({
+        documentId: created.documentId,
+        populate: "*",
+      })
+
+      expect(document).toBeDefined()
       expect(getCacheSpy).toHaveBeenCalledTimes(1)
       expect(setCacheSpy).toHaveBeenCalledTimes(1)
     })
@@ -190,22 +199,24 @@ describe("lifecycle", () => {
       expect(clearedResult).toBeNull()
     })
 
-    test("should delete cached entry for deleted dependants", async () => {
+    test("should invalidate cached entry for updated dependants", async () => {
       const clearCacheSpy = vitest.spyOn(cacheService, "clear")
       const refreshDependentsCacheSpy = vitest.spyOn(cacheService, "refreshDependents")
 
+      // Create nested + parent and populate their caches via reads
       const nestedSection = await strapi.documents(contentType).create({
         data: { name: "nestedSection" },
       })
-
-      const _parentSection = await strapi.documents(contentType).create({
+      const parentSection = await strapi.documents(contentType).create({
         data: { name: "parentSection", sections: [nestedSection.documentId] },
       })
 
-      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+      // Populate cache for both via read path
+      await strapi.documents(contentType).findOne({ documentId: nestedSection.documentId, populate: "*" })
+      await strapi.documents(contentType).findOne({ documentId: parentSection.documentId, populate: "*" })
+
       setCacheSpy.mockReset()
 
-      // Update the nestedSection, which will clear the cache for nestedSection and refresh it for parentSection
       await strapi.documents(contentType).update({
         documentId: nestedSection.documentId,
         locale: nestedSection.locale,
@@ -215,10 +226,40 @@ describe("lifecycle", () => {
 
       expect(clearCacheSpy).toHaveBeenCalledTimes(1)
       expect(refreshDependentsCacheSpy).toHaveBeenCalledTimes(1)
-      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+      expect(setCacheSpy).toHaveBeenCalledTimes(0)
 
       clearCacheSpy.mockClear()
       refreshDependentsCacheSpy.mockClear()
+    })
+
+    test("should return fresh data after dependent invalidation", async () => {
+      // Create nested + parent and populate their caches via reads
+      const nestedSection = await strapi.documents(contentType).create({
+        data: { name: "staleCheck" },
+      })
+      const parentSection = await strapi.documents(contentType).create({
+        data: { name: "staleCheckParent", sections: [nestedSection.documentId] },
+      })
+
+      // Populate cache for the parent via read
+      const before = await strapi.documents(contentType).findOne({
+        documentId: parentSection.documentId,
+        populate: "*",
+      })
+      expect(before.sections[0].name).toBe("staleCheck")
+
+      // Update the nested document
+      await strapi.documents(contentType).update({
+        documentId: nestedSection.documentId,
+        data: { name: "staleCheckUpdated" } as Partial<Modules.Documents.Params.Data.Input<typeof contentType>>,
+      })
+
+      // The parent's cache entry should have been invalidated; next read returns fresh data
+      const after = await strapi.documents(contentType).findOne({
+        documentId: parentSection.documentId,
+        populate: "*",
+      })
+      expect(after.sections[0].name).toBe("staleCheckUpdated")
     })
 
     test("should update cache when bustCache is true", async () => {
@@ -230,17 +271,99 @@ describe("lifecycle", () => {
         data: { name: "parentSection", sections: [nestedSection.documentId] },
       })
 
-      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+      // Populate cache for parent via read
+      await strapi.documents(contentType).findOne({ documentId: parentSection.documentId, populate: "*" })
+      expect(setCacheSpy).toHaveBeenCalledTimes(1)
       setCacheSpy.mockReset()
 
+      // Cached, so no set
       await strapi.documents(contentType).findOne({ documentId: parentSection.documentId, populate: "*" })
       expect(setCacheSpy).toHaveBeenCalledTimes(0)
 
+      // bustCache forces re-computation
       await strapi
         .documents(contentType)
         .findOne({ documentId: parentSection.documentId, populate: "*", bustCache: true })
 
       expect(setCacheSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe("cache with warmOnWrite", () => {
+    let cacheService: Core.Service
+    let getCacheSpy: ReturnType<typeof vitest.spyOn>
+    let setCacheSpy: ReturnType<typeof vitest.spyOn>
+    let originalConfigGet: typeof strapi.config.get
+    let configSpy: ReturnType<typeof vitest.spyOn>
+
+    beforeAll(() => {
+      cacheService = strapi.service("plugin::deep-populate.cache")
+      getCacheSpy = vitest.spyOn(cacheService, "get")
+      setCacheSpy = vitest.spyOn(cacheService, "set")
+
+      originalConfigGet = strapi.config.get
+      configSpy = vitest.spyOn(strapi.config, "get")
+      configSpy.mockImplementation((key) => {
+        const config = originalConfigGet.call(strapi.config, key)
+        if (key === "plugin::deep-populate") {
+          return {
+            ...(config as object),
+            useCache: true,
+            cacheOptions: { warmOnWrite: true },
+          }
+        }
+        return config
+      })
+    })
+
+    afterAll(() => {
+      configSpy.mockRestore()
+    })
+
+    beforeEach(() => {
+      getCacheSpy.mockReset()
+      setCacheSpy.mockReset()
+    })
+
+    test("create should warm the cache", async () => {
+      await strapi.documents(contentType).create({ data: { name: "eagerCached" } })
+
+      expect(getCacheSpy).toHaveBeenCalledTimes(1)
+      expect(setCacheSpy).toHaveBeenCalledTimes(1)
+    })
+
+    test("should re-warm cache for updated dependants", async () => {
+      const clearCacheSpy = vitest.spyOn(cacheService, "clear")
+      const refreshDependentsCacheSpy = vitest.spyOn(cacheService, "refreshDependents")
+
+      const nestedSection = await strapi.documents(contentType).create({
+        data: { name: "eagerNested" },
+      })
+      const _parentSection = await strapi.documents(contentType).create({
+        data: { name: "eagerParent", sections: [nestedSection.documentId] },
+      })
+
+      // Both creates warm the cache
+      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+      setCacheSpy.mockReset()
+      clearCacheSpy.mockReset()
+      refreshDependentsCacheSpy.mockReset()
+
+      // Update nested
+      await strapi.documents(contentType).update({
+        documentId: nestedSection.documentId,
+        locale: nestedSection.locale,
+        status: nestedSection.status,
+        data: { name: "eagerNestedUpdated" } as Partial<Modules.Documents.Params.Data.Input<typeof contentType>>,
+      })
+
+      expect(clearCacheSpy).toHaveBeenCalledTimes(1)
+      expect(refreshDependentsCacheSpy).toHaveBeenCalledTimes(1)
+      // Should have rewarmed: 1 for the updated doc + 1 for the dependent parent
+      expect(setCacheSpy).toHaveBeenCalledTimes(2)
+
+      clearCacheSpy.mockClear()
+      refreshDependentsCacheSpy.mockClear()
     })
   })
 })

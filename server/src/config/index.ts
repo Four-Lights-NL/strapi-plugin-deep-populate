@@ -22,6 +22,7 @@ export type ContentTypeConfig = {
 
 export type CacheOptions = {
   clearCacheOnStartup?: boolean
+  warmOnWrite?: boolean
 }
 
 export type Config = {
