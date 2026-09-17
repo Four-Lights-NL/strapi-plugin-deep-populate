@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.17.0] - 2026-09-17
+
+### Changed
+
+- Cache warming after writes is now lazy by default: invalidating an entry no longer synchronously re-populates the affected entries, significantly speeding up publish and update operations when caching is enabled. Set the new `cacheOptions.warmOnWrite` flag to `true` to restore the previous behaviour, at the cost of the first read after a write paying the cache-miss cost ([#154](https://github.com/Four-Lights-NL/strapi-plugin-deep-populate/pull/154)) (Thomas Rijpstra)
+
 ## [1.16.0] - 2026-06-30
 
 🎉 A big thank you to [@sehrish30](https://github.com/sehrish30) for their first contributions to this plugin!
