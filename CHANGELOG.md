@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.17.1] - 2026-09-17
+
+### Fixed
+
+- Added missing changelog for 1.17.0
+
 ## [1.17.0] - 2026-09-17
 
 ### Changed
