@@ -100,6 +100,21 @@ describe("wildcard populate (issue #156)", () => {
     expectDeeplyPopulatedGallery(response.body.data)
   })
 
+  it("deep-populates a wildcard findMany with a full-access token despite a morph relation", async () => {
+    const response = await supertest(strapi.server.httpServer)
+      .get("/api/galleries")
+      .set("Authorization", `Bearer ${fullAccessToken}`)
+      .query({ populate: "*", status: "draft" })
+      .expect(200)
+
+    const items = response.body.data as Array<Record<string, any>>
+    expect(Array.isArray(items)).toBe(true)
+
+    const gallery = items.find((doc) => doc.documentId === galleryDocumentId)
+    expect(gallery).toBeTruthy()
+    expectDeeplyPopulatedGallery(gallery as Record<string, unknown>)
+  })
+
   it("deep-populates a wildcard request with a token that is denied a relation", async () => {
     const apiTokenService = strapi.service("admin::api-token")
     const restricted = await apiTokenService.create({
