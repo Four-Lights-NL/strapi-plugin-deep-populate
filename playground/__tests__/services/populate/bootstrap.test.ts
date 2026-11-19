@@ -18,15 +18,16 @@ describe("bootstrap", () => {
 
     originalConfigGet = strapi.config.get
     configSpy = vitest.spyOn(strapi.config, "get")
-    configSpy.mockImplementation((key) => {
-      const config = { ...originalConfigGet.call(strapi.config, key), useCache: true }
+    configSpy.mockImplementation((key, defaultValue) => {
       if (key === "plugin::deep-populate") {
+        const config = originalConfigGet.call(strapi.config, key, defaultValue)
         return {
           ...(config as object),
+          useCache: true,
           cacheOptions: clearCacheOnStartup !== undefined ? { clearCacheOnStartup } : undefined,
         }
       }
-      return config
+      return originalConfigGet.call(strapi.config, key, defaultValue)
     })
 
     context = (await setupDocuments()) as unknown as typeof context
