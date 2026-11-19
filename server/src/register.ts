@@ -1,9 +1,11 @@
 import type { Core, Schema, UID } from "@strapi/strapi"
 
-import { async, sanitize } from "@strapi/utils"
+import { async } from "@strapi/utils"
 import cloneDeep from "lodash/cloneDeep"
 import has from "lodash/has"
 import isEmpty from "lodash/isEmpty"
+import isEqual from "lodash/isEqual"
+import isObject from "lodash/isObject"
 import unset from "lodash/unset"
 
 import {
@@ -13,6 +15,18 @@ import {
 } from "./migrations"
 import { asBoolean } from "./utils/asBoolean"
 import log from "./utils/log"
+
+/**
+ * A populate object is "wildcard shaped" when it is a flat map of `true` values, e.g.
+ * `{ sections: true, image: true }`. Strapi produces exactly this for `?populate=*` before it
+ * applies auth based filtering, so it is a strong signal that we may have failed to recognise a
+ * wildcard request.
+ */
+const looksLikeWildcard = (populate: unknown): boolean =>
+  isObject(populate) &&
+  !Array.isArray(populate) &&
+  !isEmpty(populate) &&
+  Object.values(populate as Record<string, unknown>).every((value) => value === true)
 
 const populateIsWildcardEquivalent = async ({
   strapi,
@@ -24,17 +38,28 @@ const populateIsWildcardEquivalent = async ({
   populate: unknown
 }) => {
   if (isEmpty(populate)) return false
+  if (populate === "*" || populate === true) return true
 
-  // NOTE: Strapi does all kinds of magic on the populate object, so we need to check if that's the case
-  const expandedWildcardQuery = await sanitize.sanitizers.defaultSanitizePopulate(
-    {
-      schema,
-      getModel: (uid: string) => strapi.getModel(uid as UID.Schema),
-    },
-    "*",
-  )
+  // Since Strapi 5.53.0 the content API sanitizes the query with the request's auth:
+  // `sanitizeQuery` passes `auth` into `sanitizePopulate`, which runs `removeRestrictedRelations`.
+  // That rewrites morph relations into polymorphic `{ on: { ... } }` fragments and strips relations
+  // the auth cannot access, so the incoming populate no longer matches a naive, auth-less expansion
+  // of `*`. Reproduce the exact sanitization core applied by using the host's own sanitizer and the
+  // current request's auth, otherwise `replaceWildcard` silently stops working.
+  const auth = (strapi.requestContext?.get?.()?.state?.auth as unknown) ?? {}
+  const expandedWildcardQuery = (await strapi.contentAPI.sanitize.populate("*", schema, { auth })) as unknown
 
-  return populate === "*" || populate === true || JSON.stringify(expandedWildcardQuery) === JSON.stringify(populate)
+  const isEquivalent = isEqual(expandedWildcardQuery, populate)
+
+  if (!isEquivalent && looksLikeWildcard(populate)) {
+    log.debug(
+      "Deep populate: a wildcard-like populate was not recognised as `*` and was passed through " +
+        "untouched. This usually means Strapi changed how it sanitizes the populate query.",
+      JSON.stringify({ populate, expandedWildcardQuery }),
+    )
+  }
+
+  return isEquivalent
 }
 
 export async function clearCacheForChangedSchemas(schemas: UID.Schema[]) {
