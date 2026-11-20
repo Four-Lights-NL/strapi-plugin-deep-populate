@@ -93,6 +93,8 @@ nbproject
 
 public/uploads/*
 !public/uploads/.gitkeep
+playground/public/uploads/*
+!playground/public/uploads/.gitkeep
 
 
 ############################
