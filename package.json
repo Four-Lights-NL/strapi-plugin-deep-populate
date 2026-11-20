@@ -10,6 +10,13 @@
   "packageManager": "npm@11.16.0",
   "exports": {
     "./package.json": "./package.json",
+    "./strapi-admin": {
+      "types": "./dist/admin/src/index.d.ts",
+      "source": "./admin/src/index.ts",
+      "import": "./dist/admin/index.mjs",
+      "require": "./dist/admin/index.js",
+      "default": "./dist/admin/index.js"
+    },
     "./strapi-server": {
       "types": "./dist/server/src/index.d.ts",
       "source": "./server/src/index.ts",
@@ -29,25 +36,39 @@
     "test": "npm-run-all --parallel test:*",
     "test:ts:back": "tsc -p server/tsconfig.json",
     "test:integration": "vitest",
-    "ci": "biome ci server",
+    "ci": "biome ci server admin",
     "release": "release-it",
-    "playground:install": "cd playground && $npm_execpath install"
+    "playground:install": "cd playground && $npm_execpath install",
+    "test:admin": "vitest run --config vitest.admin.config.ts",
+    "test:ts:front": "tsc -p admin/tsconfig.json"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "@strapi/design-system": "^2.2.4",
+    "@strapi/icons": "^2.2.4",
+    "lodash": "^4.17.21",
+    "react-intl": "^6.6.2",
+    "yup": "0.32.9"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
+    "@strapi/admin": "5.53.0",
     "@strapi/database": "5.53.0",
     "@strapi/sdk-plugin": "^5.3.2",
     "@strapi/strapi": "5.53.0",
     "@strapi/typescript-utils": "5.53.0",
     "@strapi/utils": "5.53.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
     "@types/supertest": "^6.0.3",
     "better-sqlite3": "^12.4.1",
+    "jsdom": "^26.1.0",
     "npm-run-all": "^4.1.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.3",
     "release-it": "^19.0.6",
     "simple-git": "^3.30.0",
+    "styled-components": "^6.1.19",
     "supertest": "^7.1.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
@@ -55,8 +76,16 @@
     "vitest": "^4.0.10"
   },
   "peerDependencies": {
+    "@strapi/admin": "^5.0.0",
+    "@strapi/design-system": "^2.0.0",
+    "@strapi/icons": "^2.0.0",
     "@strapi/sdk-plugin": "^5",
-    "@strapi/strapi": "^5"
+    "@strapi/strapi": "^5",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-intl": "^6.0.0",
+    "react-router-dom": "^6.0.0",
+    "styled-components": "^6.0.0"
   },
   "overrides": {
     "vite": "$vite",

@@ -1,0 +1,9 @@
+{
+  "extends": "@strapi/typescript-utils/tsconfigs/admin",
+  "compilerOptions": {
+    "rootDir": "../",
+    "baseUrl": ".",
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
+  },
+  "include": ["./src"]
+}
