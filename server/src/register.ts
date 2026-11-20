@@ -40,19 +40,26 @@ const populateIsWildcardEquivalent = async ({
   if (isEmpty(populate)) return false
   if (populate === "*" || populate === true) return true
 
-  // Since Strapi 5.53.0 the content API sanitizes the query with the request's auth:
-  // `sanitizeQuery` passes `auth` into `sanitizePopulate`, which runs `removeRestrictedRelations`.
-  // That rewrites morph relations into polymorphic `{ on: { ... } }` fragments and strips relations
-  // the auth cannot access, so the incoming populate no longer matches a naive, auth-less expansion
-  // of `*`. Reproduce the exact sanitization core applied by using the host's own sanitizer and the
-  // current request's auth, otherwise `replaceWildcard` silently stops working.
+  // The content API sanitizes the query before the document service middleware runs, so the incoming
+  // populate is core's sanitized result rather than the raw `*`. Reproduce exactly what the controller
+  // did by calling the same entry point it uses (`sanitize.query`, which reads `route`/`auth`), with
+  // the request's auth.
+  //
+  // This must be `sanitize.query` and not `sanitize.populate` directly. `sanitizePopulate` already
+  // applies `removeRestrictedRelations(auth)` whenever it is given an auth, but core's `sanitizeQuery`
+  // only began passing the request auth into it in 5.53.0. Calling `sanitize.populate("*", schema, { auth })`
+  // would therefore apply the auth visitor even on <= 5.52.3, where core does not, and silently break
+  // `?populate=*` on the very versions that must keep working.
   //
   // The auth-aware sanitization only applies to content API requests. Outside one (direct document
-  // service calls, bootstrap) there is no auth-derived populate to match, so we skip the auth
-  // visitor to avoid needless work on every call.
+  // service calls, bootstrap) there is no auth-derived populate to match, so we skip the auth visitor
+  // to avoid needless work on every call.
   const ctx = strapi.requestContext?.get?.()
   const auth = ctx ? ((ctx.state?.auth as unknown) ?? {}) : undefined
-  const expandedWildcardQuery = (await strapi.contentAPI.sanitize.populate("*", schema, { auth })) as unknown
+  const sanitized = (await strapi.contentAPI.sanitize.query({ populate: "*" }, schema, { auth })) as {
+    populate?: unknown
+  }
+  const expandedWildcardQuery = sanitized.populate
 
   const isEquivalent = isEqual(expandedWildcardQuery, populate)
 
