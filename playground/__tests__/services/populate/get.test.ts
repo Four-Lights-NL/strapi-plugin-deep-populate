@@ -44,6 +44,9 @@ describe("get", () => {
           localizations: undefined,
           omitEmpty: true,
         },
+        __deepPopulateSchemaConfig: {
+          "api::section.section": { options: { selfReferencing: true } },
+        },
       })
     })
 

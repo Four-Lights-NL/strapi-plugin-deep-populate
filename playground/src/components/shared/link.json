@@ -17,7 +17,9 @@
     },
     "target": {
       "type": "enumeration",
-      "enum": ["_blank"]
+      "enum": [
+        "_blank"
+      ]
     },
     "isExternal": {
       "type": "boolean",
@@ -27,7 +29,14 @@
     "page": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "api::page.page"
+      "target": "api::page.page",
+      "pluginOptions": {
+        "deep-populate": {
+          "allow": {
+            "relations": []
+          }
+        }
+      }
     }
   }
 }

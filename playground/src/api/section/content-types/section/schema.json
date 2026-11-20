@@ -13,6 +13,9 @@
   "pluginOptions": {
     "i18n": {
       "localized": true
+    },
+    "deep-populate": {
+      "selfReferencing": true
     }
   },
   "attributes": {
@@ -46,7 +49,12 @@
     },
     "blocks": {
       "type": "dynamiczone",
-      "components": ["cms.special", "cms.cool-component", "cms.slider", "shared.link"]
+      "components": [
+        "cms.special",
+        "cms.cool-component",
+        "cms.slider",
+        "shared.link"
+      ]
     }
   }
 }

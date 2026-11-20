@@ -13,6 +13,9 @@
   "pluginOptions": {
     "i18n": {
       "localized": true
+    },
+    "deep-populate": {
+      "selfReferencing": false
     }
   },
   "attributes": {
@@ -38,7 +41,9 @@
       "type": "media",
       "multiple": false,
       "required": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     }
   }
 }
