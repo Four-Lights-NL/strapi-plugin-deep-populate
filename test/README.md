@@ -2,17 +2,19 @@
 
 The plugin is tested against a real Strapi app booted from `playground/`. This
 directory holds the harness (boot, config, fixtures) and three layers of tests:
-**unit**, **integration** and **memory**.
+**unit**, **integration** and **memory**. The admin (React) layer is tested
+separately with a jsdom runner, see [Admin tests](#admin-tests).
 
 ## Layout
 
 ```
 test/
-  harness/        shared instance, config override, db/request/upload/memory helpers
+  harness/        shared instance, config/settings override, db/request/upload/memory helpers
   factories/      typed document factories, component builders and presets
   unit/           Strapi-free unit tests (no boot)
   integration/    suites running against the shared Strapi instance
   memory/         opt-in memory-footprint suite
+admin/src/**/*.test.tsx   admin component/page tests (vitest.admin.config.ts)
 ```
 
 Tests import harness and factory code through the `@test/*` alias, e.g.
@@ -27,10 +29,11 @@ Use Node 20–24 (the versions in the compatibility matrix). The native
 | --- | --- |
 | `npm run test:unit` | Unit tests only. Fast, no Strapi boot, no build needed. |
 | `npm run test:integration` | Integration suites on the shared instance. Needs a build. |
+| `npm run test:admin` | Admin component/page tests in jsdom (`vitest.admin.config.ts`). No Strapi boot. |
 | `npm run test:coverage` | Unit + integration with v8 coverage over `server/src`. |
 | `npm run test:memory` | Memory footprint suite (opt-in, needs the build, slow). |
-| `npm test` | Pre-builds (`build:test`), typechecks, then unit + integration. |
-| `npm run typecheck` | `tsc` for the server sources and for the test project. |
+| `npm test` | Pre-builds (`build:test`), typechecks (back + test + front), then unit + integration + admin. |
+| `npm run typecheck` | `tsc` for the server sources, the test project and the admin sources. |
 
 ### Fast loop
 
@@ -90,6 +93,45 @@ setPluginConfig({ useCache: false, omitEmpty: true })
 - The configs enable `restoreMocks`, which restores every spy between tests;
   the setup hook re-installs the config spy before each test.
 
+### Settings store
+
+The runtime resolves global config as `store > config/plugins.js > defaults`,
+where the store is the value edited through the admin settings page. Tests drive
+it through `harness/settings.ts` instead of the config spy:
+
+```ts
+import { getSettings, getGlobal, setSettings } from "@test/harness"
+
+await setSettings({ omitEmpty: true })   // persist a settings patch
+getGlobal()                              // resolved global config (sync)
+```
+
+- `harness/setup.ts` calls `resetSettings()` in `beforeEach` (when Strapi is
+  booted). A value left in the store by one suite ranks **above**
+  `config/plugins.js`, so without the reset it would silently override the next
+  suite's `setPluginConfig`.
+- `resetSettings()` writes `{}` and then calls the service's `reset()` hook,
+  which forgets the in-memory snapshot so the next `load()` re-reads the store.
+
+Because config and settings are reset by the harness, a unit test that stubs
+`globalThis.strapi` **must restore it per test** (not in `beforeAll`); otherwise
+the harness's `beforeEach` would run its settings reset against the stub. See
+`test/unit/deepPopulateUtils.test.ts`.
+
+### Schema option overrides
+
+To exercise the schema-level `pluginOptions['deep-populate']` resolution, wrap a
+call in `withSchemaOptions` / `withAttributeOptions`:
+
+```ts
+await withSchemaOptions("api::section.section", { selfReferencing: false }, () =>
+  populateService().get({ contentType, documentId }),
+)
+```
+
+Both mutate the booted model's `pluginOptions` and restore the previous value in
+`finally`, so nothing leaks into other suites.
+
 ## Factories
 
 Factories eager-create documents and return a chainable `Handle`:
@@ -148,8 +190,36 @@ dynamic-zone entry. Builders never touch Strapi.
 - `harness/db.ts`: `resetDatabase()` wipes app content types, components, link
   tables and the populate cache (Strapi's `strapi_`/`admin_`/`up_` tables are
   preserved), `clearCache()` and `countCache()`.
+- `harness/settings.ts`: `settingsService()`, `getSettings()`, `getGlobal()`,
+  `setSettings()` and `resetSettings()` wrap the plugin's settings service.
+- `harness/schema.ts`: `withSchemaOptions(uid, options, fn)` and
+  `withAttributeOptions(uid, attr, options, fn)` temporarily set schema-level
+  `pluginOptions['deep-populate']` and restore it afterwards.
 - `harness/memory.ts`: `trackFunction()` / `calculateStats()` used by the memory
   suite (requires `--expose-gc`, which the configs set).
+
+## Suites ported from the stacked PRs
+
+The harness re-expresses the tests that shipped with the stacked PRs so that
+they run against the shared instance:
+
+- `integration/wildcard.test.ts` (from #157): the `?populate=*` regression for
+  issue #156 — full-access, public and denied-relation tokens through the HTTP
+  API, plus a `findMany` case. Uses `factories/gallery.ts` (`api::gallery.gallery`)
+  and `harness/upload.ts`.
+- `integration/plugin-options.test.ts` (from #158): global settings, schema
+  `pluginOptions` at every level, attribute allow/deny, `selfReferencing` and
+  cache-fingerprint invalidation.
+- `integration/settings.test.ts` (from #158): the settings service/controller —
+  store persistence, partial merge, cache flush on re-enable, target listing and
+  permission registration.
+
+## Admin tests
+
+Admin components/pages (`admin/src/**/*.test.tsx`) run through
+`vitest.admin.config.ts` (jsdom + Testing Library) via `npm run test:admin`. They
+do **not** use the integration harness: the harness boots with
+`serveAdminPanel: false`, so the admin bundle is verified in isolation.
 
 ## Coverage
 
@@ -163,28 +233,35 @@ below the measured values so CI catches regressions without being noisy.
 
 There was no usable pre-refactor baseline: the old suite ran against the
 compiled playground bundle, which the v8 provider attributed as `0/391` lines in
-`server/src`. The measured baseline for the new run is **19.69% lines / 25.66%
-branches / 24.63% functions / 19.76% statements**, and the thresholds are set
-just below those numbers. This is the documented fallback from the plan
-(thresholds on the unit-observable surface).
+`server/src`. After rebasing onto the stacked PR (#158), which grows
+`server/src` by ~600–700 unattributable lines (settings store, admin
+routes/controller, schema plugin options), the measured baseline is **24.28%
+lines / 30.82% branches / 28.69% functions / 24.66% statements**. The unit tests
+for the new pure config helpers (`isPlainObject`, `parseSchemaPluginOptions`,
+`parseAttributePluginOptions`, `parseGlobalSettings`, `parseCacheOptions`,
+`resolveGlobalConfig`) carry most of the added attributable surface. The
+thresholds in `vitest.coverage.config.ts` are set ~1.6 points below the measured
+values so CI catches regressions without being noisy.
 
 ## CI
 
 - `.github/workflows/validate.yaml` is the PR gate: prepare → build → verify →
-  install playground → typecheck → sourcemapped build → `test:coverage` → upload
-  coverage → biome. The memory suite is **not** part of the gate.
+  install playground → typecheck → sourcemapped build → `test:coverage` →
+  `test:admin` → upload coverage → biome. The memory suite is **not** part of the
+  gate.
 - `.github/workflows/compatibility.yaml` runs weekly and on demand, with an
-  explicit `include` matrix: Node 20 + the Strapi floor, Node 20/22/24 + latest
-  Strapi, and the memory suite on the Node 24 latest leg.
+  explicit `include` matrix: Node 20 + the Strapi floor (`5.31.0`), Node 20 at
+  the wildcard-fix boundaries (`5.52.3`, `5.61.0`), and Node 20/22/24 + latest
+  Strapi, with the memory suite on the Node 24 latest leg.
 
 ### Version injection
 
 The harness boots the app with the Strapi copy in `playground/node_modules`
 (see `harness/runtime.ts`), so version injection must rewrite **both** trees:
 the root devDependencies (`@strapi/strapi`, `@strapi/utils`,
-`@strapi/database`, `@strapi/typescript-utils`) and the playground dependencies
-(`@strapi/strapi`, `@strapi/plugin-users-permissions`). This is CI-only and is
-never committed.
+`@strapi/database`, `@strapi/typescript-utils`, and `@strapi/admin` — the admin
+bundle needs it) and the playground dependencies (`@strapi/strapi`,
+`@strapi/plugin-users-permissions`). This is CI-only and is never committed.
 
 The compatibility job resolves `latest` to an exact version and passes it to the
 integration run as `EXPECTED_STRAPI_VERSION`; `test/integration/app.test.ts`

@@ -36,16 +36,17 @@ export default defineConfig({
       exclude: ["server/src/**/*.d.ts"],
       reporter: ["text", "json-summary", "lcov"],
       reportsDirectory: "coverage",
-      // Measured baseline (unit layer + whatever the v8 provider can attribute
-      // from the booted app). The bulk of the plugin runs through the app's
-      // native module loader, outside the Vite module graph, so the integration
-      // suites contribute little to the numbers. Thresholds are set just below
-      // the measured values to guard against regressions without being noisy.
+      // Re-baselined after the stacked PR (#158) grew `server/src` (~600-700 new
+      // lines for the settings store, admin routes/controller and schema plugin
+      // options). Measured at statements 24.66 / branches 30.82 / functions 28.69 /
+      // lines 24.28 on the merged tree, with the new unit tests for the pure config
+      // helpers carrying most of the attributable surface. Thresholds sit ~1.6
+      // points below to guard against regressions without being noisy.
       thresholds: {
-        lines: 18,
-        statements: 18,
-        functions: 23,
-        branches: 24,
+        lines: 23,
+        statements: 23,
+        functions: 27,
+        branches: 29,
       },
     },
   },
