@@ -2,6 +2,7 @@
   "extends": "@strapi/typescript-utils/tsconfigs/server",
   "compilerOptions": {
     "types": ["node", "vitest/globals"],
+    "lib": ["ES2022"],
     "noEmit": true,
     "module": "es2022",
     "moduleResolution": "bundler",

@@ -1,50 +1,48 @@
-import type { Core } from "@strapi/strapi"
+import { createPage, type Handle } from "@test/factories"
+import { getSettings, setSettings, setupStrapi, strapi } from "@test/harness"
+import { beforeAll, beforeEach, describe, expect, test } from "vitest"
 
-import { setupStrapi, strapi, teardownStrapi } from "../helpers/strapi"
-
-const settingsService = () =>
-  strapi.plugin("deep-populate").service("settings") as Core.Service & {
-    getSettings: () => Promise<Record<string, unknown>>
-    setSettings: (value: Record<string, unknown>) => Promise<unknown>
+const populateService = () =>
+  strapi.plugin("deep-populate").service("populate") as unknown as {
+    get: (params: Record<string, unknown>) => Promise<Record<string, unknown>>
   }
 
-const controller = () => strapi.controller("plugin::deep-populate.settings")
+const controller = () =>
+  strapi.controller("plugin::deep-populate.settings") as unknown as {
+    getSettings: (ctx: unknown) => Promise<void>
+    updateSettings: (ctx: unknown) => Promise<void>
+    getTargets: (ctx: unknown) => Promise<void>
+  }
 
-const populateService = () => strapi.plugin("deep-populate").service("populate") as Core.Service
+const cacheCount = async (): Promise<number> =>
+  (strapi.db.query("plugin::deep-populate.cache") as unknown as { count: () => Promise<number> }).count()
 
-const cacheCount = () => strapi.db.query("plugin::deep-populate.cache").count()
-
-const createContext = (body?: unknown) => ({ request: { body }, body: undefined }) as never
+type Ctx = { request: { body?: unknown }; body: Record<string, unknown> }
+const createContext = (body?: unknown): Ctx => ({ request: { body }, body: {} })
 
 describe("settings", () => {
-  let originalSettings: Record<string, unknown>
-  let cachedPage: { documentId: string }
+  let cachedPage: Handle
 
   beforeAll(async () => {
     await setupStrapi()
-    await settingsService().setSettings({})
-    originalSettings = await settingsService().getSettings()
-    cachedPage = await strapi.documents("api::page.page").create({
-      data: { title: "settings cache page", slug: "settings-cache-page" },
-    })
-  })
-
-  afterAll(async () => {
-    await settingsService().setSettings(originalSettings)
-    await teardownStrapi()
+    await setSettings({})
+    cachedPage = await createPage({ title: "settings cache page" })
   })
 
   beforeEach(async () => {
-    await settingsService().setSettings({})
+    await setSettings({})
   })
 
   test("registers the settings permission", () => {
-    const actions = strapi.service("admin::permission").actionProvider.values()
+    const permission = strapi.service("admin::permission") as unknown as {
+      actionProvider: { values: () => Array<{ actionId: string }> }
+    }
+    const actions = permission.actionProvider.values()
     expect(actions.map((action) => action.actionId)).toContain("plugin::deep-populate.settings.access")
   })
 
   test("gets the effective settings", async () => {
-    await settingsService().setSettings({ useCache: false })
+    await setSettings({ useCache: false })
 
     const ctx = createContext()
     await controller().getSettings(ctx)
@@ -74,16 +72,16 @@ describe("settings", () => {
       localizations: true,
       cacheOptions: { clearCacheOnStartup: true, warmOnWrite: true },
     })
-    expect(await settingsService().getSettings()).toMatchObject({ useCache: false })
+    expect(await getSettings()).toMatchObject({ useCache: false })
   })
 
   test("merges partial updates into the stored settings", async () => {
-    await settingsService().setSettings({ useCache: false, replaceWildcard: false, omitEmpty: true })
+    await setSettings({ useCache: false, replaceWildcard: false, omitEmpty: true })
 
     const ctx = createContext({ localizations: true })
     await controller().updateSettings(ctx)
 
-    expect(await settingsService().getSettings()).toMatchObject({
+    expect(await getSettings()).toMatchObject({
       useCache: false,
       replaceWildcard: false,
       omitEmpty: true,
@@ -92,11 +90,11 @@ describe("settings", () => {
   })
 
   test("flushes stale entries when caching is re-enabled", async () => {
-    await settingsService().setSettings({ useCache: true })
+    await setSettings({ useCache: true })
     await populateService().get({ contentType: "api::page.page", documentId: cachedPage.documentId })
     expect(await cacheCount()).toBeGreaterThan(0)
 
-    await settingsService().setSettings({ useCache: false })
+    await setSettings({ useCache: false })
     const ctx = createContext({ useCache: true })
     await controller().updateSettings(ctx)
 

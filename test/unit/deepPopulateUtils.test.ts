@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 
 import { getConfig, getRelations, hasValue, isEmpty } from "../../server/src/services/deep-populate/utils"
 
@@ -8,6 +8,9 @@ const previousStrapi = globalScope.strapi
 const setStrapiConfig = (config: Record<string, unknown>) => {
   globalScope.strapi = {
     config: { get: (key: string) => (key === "plugin::deep-populate" ? config : undefined) },
+    // `getConfig` now reads the schema's `pluginOptions['deep-populate']`, and `getGlobalConfig`
+    // falls back to `config/plugins.js` when the settings service is unavailable (as here).
+    getModel: () => ({ pluginOptions: {} }),
   }
 }
 
@@ -85,9 +88,11 @@ describe("getRelations", () => {
 })
 
 describe("getConfig", () => {
-  beforeAll(() => setStrapiConfig({ useCache: true, replaceWildcard: true, contentTypes: {} }))
-  afterAll(() => {
-    // Restore whatever was there before (the booted app in a combined run).
+  afterEach(() => {
+    // Restore whatever was there before (the booted app in a combined run) so the
+    // harness's global `beforeEach` — which resets the settings store — never runs
+    // against a stubbed `strapi`. `setStrapiConfig` is called inside each test body,
+    // so the stub exists only for the duration of the test.
     if (previousStrapi === undefined) delete globalScope.strapi
     else globalScope.strapi = previousStrapi
   })

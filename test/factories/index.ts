@@ -1,4 +1,5 @@
 export * from "./components"
+export * from "./gallery"
 export * from "./handle"
 export * from "./page"
 export * from "./presets"
