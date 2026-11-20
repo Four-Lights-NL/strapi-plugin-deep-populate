@@ -6,6 +6,7 @@ export default defineConfig((config) => {
       alias: {
         "@": "/src",
       },
+      dedupe: ["@strapi/admin", "@strapi/design-system", "@strapi/icons"],
     } as UserConfig,
   })
 })
