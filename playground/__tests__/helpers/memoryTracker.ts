@@ -2,9 +2,11 @@ export type TrackFunctionOptions = { iterations?: number; forceGC?: boolean; war
 export const trackFunction = async (fn, options: TrackFunctionOptions = {}) => {
   const { iterations = 1, forceGC = true, warmup = true } = options
 
-  // Warmup run to stabilize JIT compilation
+  // Warmup run to stabilize JIT compilation. This must be awaited: `fn` is async, and letting its
+  // cold work (cache filling, deep traversal) overlap the measured loop would land in the first
+  // measured iteration and produce a large, misleading heap delta.
   if (warmup) {
-    fn()
+    await fn()
     if (forceGC && global.gc) global.gc()
   }
 

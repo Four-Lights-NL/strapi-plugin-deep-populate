@@ -1,9 +1,11 @@
 import type { Core, Schema, UID } from "@strapi/strapi"
 
-import { async, sanitize } from "@strapi/utils"
+import { async } from "@strapi/utils"
 import cloneDeep from "lodash/cloneDeep"
 import has from "lodash/has"
 import isEmpty from "lodash/isEmpty"
+import isEqual from "lodash/isEqual"
+import isObject from "lodash/isObject"
 import unset from "lodash/unset"
 
 import {
@@ -13,6 +15,18 @@ import {
 } from "./migrations"
 import { asBoolean } from "./utils/asBoolean"
 import log from "./utils/log"
+
+/**
+ * A populate object is "wildcard shaped" when it is a flat map of `true` values, e.g.
+ * `{ sections: true, image: true }`. Strapi produces exactly this for `?populate=*` before it
+ * applies auth based filtering, so it is a strong signal that we may have failed to recognise a
+ * wildcard request.
+ */
+const looksLikeWildcard = (populate: unknown): boolean =>
+  isObject(populate) &&
+  !Array.isArray(populate) &&
+  !isEmpty(populate) &&
+  Object.values(populate as Record<string, unknown>).every((value) => value === true)
 
 const populateIsWildcardEquivalent = async ({
   strapi,
@@ -24,17 +38,40 @@ const populateIsWildcardEquivalent = async ({
   populate: unknown
 }) => {
   if (isEmpty(populate)) return false
+  if (populate === "*" || populate === true) return true
 
-  // NOTE: Strapi does all kinds of magic on the populate object, so we need to check if that's the case
-  const expandedWildcardQuery = await sanitize.sanitizers.defaultSanitizePopulate(
-    {
-      schema,
-      getModel: (uid: string) => strapi.getModel(uid as UID.Schema),
-    },
-    "*",
-  )
+  // The content API sanitizes the query before the document service middleware runs, so the incoming
+  // populate is core's sanitized result rather than the raw `*`. Reproduce exactly what the controller
+  // did by calling the same entry point it uses (`sanitize.query`, which reads `route`/`auth`), with
+  // the request's auth.
+  //
+  // This must be `sanitize.query` and not `sanitize.populate` directly. `sanitizePopulate` already
+  // applies `removeRestrictedRelations(auth)` whenever it is given an auth, but core's `sanitizeQuery`
+  // only began passing the request auth into it in 5.53.0. Calling `sanitize.populate("*", schema, { auth })`
+  // would therefore apply the auth visitor even on <= 5.52.3, where core does not, and silently break
+  // `?populate=*` on the very versions that must keep working.
+  //
+  // The auth-aware sanitization only applies to content API requests. Outside one (direct document
+  // service calls, bootstrap) there is no auth-derived populate to match, so we skip the auth visitor
+  // to avoid needless work on every call.
+  const ctx = strapi.requestContext?.get?.()
+  const auth = ctx ? ((ctx.state?.auth as unknown) ?? {}) : undefined
+  const sanitized = (await strapi.contentAPI.sanitize.query({ populate: "*" }, schema, { auth })) as {
+    populate?: unknown
+  }
+  const expandedWildcardQuery = sanitized.populate
 
-  return populate === "*" || populate === true || JSON.stringify(expandedWildcardQuery) === JSON.stringify(populate)
+  const isEquivalent = isEqual(expandedWildcardQuery, populate)
+
+  if (!isEquivalent && looksLikeWildcard(populate)) {
+    log.debug(
+      "Deep populate: a wildcard-like populate was not recognised as `*` and was passed through " +
+        "untouched. This usually means Strapi changed how it sanitizes the populate query.",
+      JSON.stringify({ populate, expandedWildcardQuery }),
+    )
+  }
+
+  return isEquivalent
 }
 
 export async function clearCacheForChangedSchemas(schemas: UID.Schema[]) {

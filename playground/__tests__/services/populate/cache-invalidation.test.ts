@@ -25,21 +25,19 @@ describe("cache invalidation", () => {
     omitEmpty = false
     localizations = false
 
-    configSpy.mockImplementation((key) => {
-      const config = {
-        ...originalConfigGet.call(strapi.config, key),
-        useCache: true,
-        replaceWildcard: true,
-        localizations,
-        omitEmpty,
-      }
+    configSpy.mockImplementation((key, defaultValue) => {
       if (key === "plugin::deep-populate") {
+        const config = originalConfigGet.call(strapi.config, key, defaultValue)
         return {
           ...(config as object),
+          useCache: true,
+          replaceWildcard: true,
+          localizations,
+          omitEmpty,
           contentTypes: configContentTypes,
         }
       }
-      return config
+      return originalConfigGet.call(strapi.config, key, defaultValue)
     })
 
     // Setup test data
