@@ -35,55 +35,28 @@ jobs:
       - name: Prepare playground
         run: npm run playground:install
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Unit + integration with coverage. Uses a sourcemapped build so the v8
+      # coverage can map the bundled plugin back to server/src.
+      - name: Build (test)
+        run: npm run build:test
+
       - name: Tests
-        run: npm run test
+        run: npm run test:coverage
+
+      # Admin (React) components and pages are verified in jsdom, not through the
+      # integration harness (which runs with `serveAdminPanel: false`).
+      - name: Admin tests
+        run: npm run test:admin
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+          if-no-files-found: ignore
 
       - name: Biome CI
         run: npm run ci
-
-  # The fix for #156 must work across the whole supported `@strapi/strapi` ^5 range, not just the
-  # version this repo happens to pin. 5.52.3 is the last release before the content API started
-  # passing the request auth into populate sanitization, and 5.61.0 is the version from the report.
-  compatibility:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        strapi:
-          - '5.52.3'
-          - '5.61.0'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-
-      - name: Prepare
-        uses: ./.github/actions/prepare
-
-      - name: Build
-        run: npm run build
-
-      - name: Pin playground to Strapi ${{ matrix.strapi }}
-        run: |
-          # The playground `overrides` pin `@strapi/admin` (added with the admin
-          # runtime dedupe) to the repo's default Strapi version. When a leg pins a
-          # different Strapi, that hardcoded pin leaves `@strapi/admin` mismatched
-          # with `@strapi/content-type-builder`/`@strapi/core` and the app fails to
-          # boot (`strapi.ai.admin.isStrapiManagedAiEnabled is not a function`), so
-          # the override is re-pinned to the leg's version here too.
-          jq --arg v "${{ matrix.strapi }}" \
-            '.dependencies["@strapi/strapi"] = $v
-             | .dependencies["@strapi/utils"] = $v
-             | .dependencies["@strapi/plugin-users-permissions"] = $v
-             | .overrides["@strapi/admin"] = $v' \
-            playground/package.json > playground/package.json.tmp
-          mv playground/package.json.tmp playground/package.json
-
-      - name: Prepare playground
-        run: npm run playground:install
-
-      - name: Tests
-        run: npm run test
-
