@@ -67,10 +67,17 @@ jobs:
 
       - name: Pin playground to Strapi ${{ matrix.strapi }}
         run: |
+          # The playground `overrides` pin `@strapi/admin` (added with the admin
+          # runtime dedupe) to the repo's default Strapi version. When a leg pins a
+          # different Strapi, that hardcoded pin leaves `@strapi/admin` mismatched
+          # with `@strapi/content-type-builder`/`@strapi/core` and the app fails to
+          # boot (`strapi.ai.admin.isStrapiManagedAiEnabled is not a function`), so
+          # the override is re-pinned to the leg's version here too.
           jq --arg v "${{ matrix.strapi }}" \
             '.dependencies["@strapi/strapi"] = $v
              | .dependencies["@strapi/utils"] = $v
-             | .dependencies["@strapi/plugin-users-permissions"] = $v' \
+             | .dependencies["@strapi/plugin-users-permissions"] = $v
+             | .overrides["@strapi/admin"] = $v' \
             playground/package.json > playground/package.json.tmp
           mv playground/package.json.tmp playground/package.json
 
