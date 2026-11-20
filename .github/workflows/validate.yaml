@@ -40,3 +40,43 @@ jobs:
 
       - name: Biome CI
         run: npm run ci
+
+  # The fix for #156 must work across the whole supported `@strapi/strapi` ^5 range, not just the
+  # version this repo happens to pin. 5.52.3 is the last release before the content API started
+  # passing the request auth into populate sanitization, and 5.61.0 is the version from the report.
+  compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        strapi:
+          - '5.52.3'
+          - '5.61.0'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Prepare
+        uses: ./.github/actions/prepare
+
+      - name: Build
+        run: npm run build
+
+      - name: Pin playground to Strapi ${{ matrix.strapi }}
+        run: |
+          jq --arg v "${{ matrix.strapi }}" \
+            '.dependencies["@strapi/strapi"] = $v
+             | .dependencies["@strapi/utils"] = $v
+             | .dependencies["@strapi/plugin-users-permissions"] = $v' \
+            playground/package.json > playground/package.json.tmp
+          mv playground/package.json.tmp playground/package.json
+
+      - name: Prepare playground
+        run: npm run playground:install
+
+      - name: Tests
+        run: npm run test
+
