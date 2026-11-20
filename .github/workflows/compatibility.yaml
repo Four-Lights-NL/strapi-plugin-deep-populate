@@ -1,0 +1,104 @@
+name: Compatibility
+
+on:
+  schedule:
+    # Weekly, so drift in Strapi/Node releases surfaces without blocking PRs.
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibility:
+    name: node ${{ matrix.node }} / strapi ${{ matrix.strapi }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # Explicit include (not a cross-product): the floor leg only needs one
+        # Node version, and the memory suite runs on a single, representative leg.
+        include:
+          # Empirical floor. This is the Strapi version the repo declares in its
+          # devDependencies; if this leg fails, raise the floor in package.json
+          # and in the peerDependency, then update this matrix.
+          - node: 20
+            strapi: '5.31.0'
+          - node: 20
+            strapi: 'latest'
+          - node: 22
+            strapi: 'latest'
+          - node: 24
+            strapi: 'latest'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            playground/package-lock.json
+
+      # `latest` is a dist-tag; resolve it to an exact version so the injected
+      # package.json is deterministic and can be asserted at runtime.
+      - name: Resolve Strapi version
+        id: strapi
+        shell: bash
+        run: |
+          if [ "${{ matrix.strapi }}" = "latest" ]; then
+            version="$(npm view @strapi/strapi version)"
+          else
+            version="${{ matrix.strapi }}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      # The harness boots the app with the Strapi copy in playground/node_modules,
+      # so the playground must be pinned too - not just the root devDependencies.
+      # CI-only: nothing is committed back.
+      - name: Inject Strapi version
+        shell: bash
+        env:
+          STRAPI: ${{ steps.strapi.outputs.version }}
+        run: |
+          npm pkg set \
+            "devDependencies.@strapi/strapi=$STRAPI" \
+            "devDependencies.@strapi/utils=$STRAPI" \
+            "devDependencies.@strapi/database=$STRAPI" \
+            "devDependencies.@strapi/typescript-utils=$STRAPI"
+          (
+            cd playground
+            npm pkg set \
+              "dependencies.@strapi/strapi=$STRAPI" \
+              "dependencies.@strapi/plugin-users-permissions=$STRAPI"
+          )
+
+      - name: Install (root)
+        run: npm install --no-audit --no-fund
+
+      - name: Install playground
+        run: npm run playground:install
+
+      - name: Build (test)
+        run: npm run build:test
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Integration tests
+        run: npm run test:integration
+        env:
+          EXPECTED_STRAPI_VERSION: ${{ steps.strapi.outputs.version }}
+
+      # Memory thresholds are machine-sensitive, so they only run on one
+      # representative leg and never in the PR gate.
+      - name: Memory tests
+        if: matrix.node == 24 && matrix.strapi == 'latest'
+        run: npm run test:memory

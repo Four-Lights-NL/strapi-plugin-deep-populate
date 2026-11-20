@@ -35,8 +35,23 @@ jobs:
       - name: Prepare playground
         run: npm run playground:install
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Unit + integration with coverage. Uses a sourcemapped build so the v8
+      # coverage can map the bundled plugin back to server/src.
+      - name: Build (test)
+        run: npm run build:test
+
       - name: Tests
-        run: npm run test
+        run: npm run test:coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+          if-no-files-found: ignore
 
       - name: Biome CI
         run: npm run ci
