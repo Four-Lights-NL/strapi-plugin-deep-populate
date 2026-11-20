@@ -1,9 +1,21 @@
 import type { Core } from "@strapi/strapi"
 
-import type { Config } from "./config"
+import log from "./utils/log"
+
+const permissions = [
+  {
+    section: "settings",
+    category: "Deep Populate",
+    subCategory: "Configuration",
+    pluginName: "deep-populate",
+    displayName: "Access the Deep Populate settings",
+    uid: "settings.access",
+  },
+]
 
 const bootstrap = async ({ strapi }: { strapi: Core.Strapi }) => {
-  const { cacheOptions } = strapi.config.get("plugin::deep-populate") as Config
+  const settings = await strapi.plugin("deep-populate").service("settings").load()
+  const { cacheOptions } = settings
 
   if (cacheOptions?.clearCacheOnStartup === true) {
     try {
@@ -15,6 +27,14 @@ const bootstrap = async ({ strapi }: { strapi: Core.Strapi }) => {
     } catch (error) {
       strapi.log.error("❌ Error during startup cache deletion:", error)
     }
+  }
+
+  try {
+    await strapi.service("admin::permission").actionProvider.registerMany(permissions)
+  } catch (error) {
+    // The admin plugin is not always available (e.g. headless setups). The settings API is then
+    // simply unreachable, which is fine.
+    log.debug("Could not register the deep-populate settings permission", String(error))
   }
 }
 

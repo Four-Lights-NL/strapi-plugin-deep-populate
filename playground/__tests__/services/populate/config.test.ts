@@ -168,6 +168,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -187,6 +190,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -202,6 +208,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -218,6 +227,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -250,6 +262,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -268,6 +283,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -287,6 +305,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId, localizations: true })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -307,6 +328,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,
@@ -327,6 +351,9 @@ describe("config", () => {
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
         __deepPopulated: true,
+        __deepPopulateSchemaConfig: {
+          "api::page.page": { options: { selfReferencing: false } },
+        },
         __deepPopulateConfig: {
           allow: undefined,
           deny: undefined,

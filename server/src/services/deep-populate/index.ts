@@ -8,13 +8,22 @@ import merge from "lodash/merge"
 import mergeWith from "lodash/mergeWith"
 import set from "lodash/set"
 
-import type { ContentTypeConfigAllow } from "../../config"
+import type { ContentTypeConfigAllow, DeepPopulateSchemaConfig } from "../../config"
 import type { PopulateParams } from "../populate"
 import type { PopulateComponentProps, PopulateDynamicZoneProps, PopulateProps, PopulateRelationProps } from "./types"
 
 import log from "../../utils/log"
 import { sanitizeObject } from "../../utils/sanitizeObject"
-import { getConfig, getRelations, hasValue, isEmpty } from "./utils"
+import {
+  getAttributePluginOptions,
+  getConfig,
+  getInheritedConfig,
+  getRelations,
+  getSchemaPluginOptions,
+  hasValue,
+  isEmpty,
+  mergeAllowDeny,
+} from "./utils"
 
 async function _populateComponent<TContentType extends UID.ContentType, TSchema extends UID.Schema>({
   schema,
@@ -22,6 +31,7 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
   lookup,
   attrName,
   inDynamicZone = false,
+  allowTargetCheck = true,
   __allow,
   __deny,
   ...params
@@ -38,11 +48,13 @@ async function _populateComponent<TContentType extends UID.ContentType, TSchema 
     return true
   }
 
+  if (allowTargetCheck) {
+    if (__allow?.components && !__allow.components.includes(schema as UID.Component)) return { populate: "*" }
+    if (__deny?.components?.includes(schema as UID.Component)) return { populate: "*" }
+  }
+
   const componentPopulate = populate
   set(componentPopulate, componentLookup, { populate: "*" })
-
-  if (__allow?.components && !__allow.components.includes(schema as UID.Component)) return { populate: "*" }
-  if (__deny?.components?.includes(schema as UID.Component)) return { populate: "*" }
 
   const nestedPopulate = await _populate({
     schema,
@@ -190,22 +202,30 @@ function shouldMarkContentTypeAsResolved(
   contentType: UID.ContentType,
   __allow: ContentTypeConfigAllow,
   relations: [string, Schema.Attribute.AnyAttribute][],
+  selfReferencing: boolean | undefined,
 ) {
   // Do not mark if explicitly allowed
   if ((__allow?.relations ?? []).includes(contentType)) return false
+
+  // `selfReferencing: true` opts out of the breaker entirely; documentId cycle detection remains
+  // the backstop.
+  if (selfReferencing === true) return false
+
+  const reorderingRelations = relations.filter(
+    ([_attrName, attr]) => contentTypes.isRelationalAttribute(attr) && contentTypes.hasRelationReordering(attr),
+  )
+
+  // `selfReferencing: false` stops self-referential relations at one level by marking the content
+  // type as resolved as soon as it has a relation with reordering (the current default trigger).
+  if (selfReferencing === false) return reorderingRelations.length > 0
 
   // If the relation has "ordering", it means that it's ManyToOne and
   // ManyToMany.  That can result in a fully connected graph, which in turn
   // results in unlimited lookups.  To prevent this, we mark the current
   // content type as 'resolved' if we encounter such a relation, unless it's
   // a self-referential content-type
-  return (
-    relations.filter(
-      ([_attrName, attr]) =>
-        contentTypes.isRelationalAttribute(attr) &&
-        contentTypes.hasRelationReordering(attr) &&
-        (attr.target as UID.ContentType) !== contentType,
-    ).length > 0
+  return reorderingRelations.some(
+    ([, attr]) => ((attr as { target?: UID.Schema }).target as UID.ContentType | undefined) !== contentType,
   )
 }
 
@@ -216,9 +236,13 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   lookup = [],
   resolvedRelations,
   resolvedSchemas,
-  omitEmpty,
-  __deny,
-  __allow,
+  schemaConfig,
+  omitEmpty: omitEmptyFallback,
+  localizations: localizationsFallback,
+  omitEmptyOverride,
+  localizationsOverride,
+  __deny: inheritedDeny,
+  __allow: inheritedAllow,
   ...params
 }: PopulateProps<TContentType, TSchema>) {
   const newPopulate = {}
@@ -229,6 +253,17 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
     strapi.log.warn("Please create a bug report and share the troublesome contentType.")
     return {}
   }
+
+  // Resolve this schema's own `pluginOptions` at every level. Static content type configuration is
+  // the inherited base and keeps its root-scoped behaviour.
+  const pluginOptions = getSchemaPluginOptions(model)
+
+  const omitEmpty = omitEmptyOverride ?? pluginOptions.omitEmpty ?? omitEmptyFallback
+  const localizations = localizationsOverride ?? pluginOptions.localizations ?? localizationsFallback
+  const __allow = pluginOptions.allow ?? inheritedAllow
+  const __deny = pluginOptions.deny ?? inheritedDeny
+  const selfReferencing = pluginOptions.selfReferencing
+
   let relations = getRelations(model)
   let currentPopulate = cloneDeep(populate)
 
@@ -263,32 +298,37 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
   currentPopulate = null
 
   // Prevent infinite lookups
-  if (shouldMarkContentTypeAsResolved(contentType, __allow, relations)) {
+  if (shouldMarkContentTypeAsResolved(contentType, __allow, relations, selfReferencing)) {
     resolvedRelations.set(contentType, true)
   }
 
   // Filter relations on actual value and optional allowing or denying
   const resolveRelations = []
+  const attributeConfig: Record<string, ReturnType<typeof getAttributePluginOptions>> = {}
   for (const [attrName, attr] of relations) {
+    const attributeOptions = getAttributePluginOptions(attr)
+    if (!isEmpty(attributeOptions)) attributeConfig[attrName] = attributeOptions
+
     const value = _resolveValue({ document, attrName, lookup })
 
     if (!hasValue(value)) {
       // keep empty attributes if requested
       if (omitEmpty !== true && attrName !== "localizations") newPopulate[attrName] = true
       // keep empty localizations when requested
-      if (attrName === "localizations" && params.localizations === true) newPopulate[attrName] = true
+      if (attrName === "localizations" && localizations === true) newPopulate[attrName] = true
       // keep empty localizations if not omitEmpty and not specifically asked to do anything with localizations
-      if (omitEmpty !== true && attrName === "localizations" && params.localizations !== false)
-        newPopulate[attrName] = true
+      if (omitEmpty !== true && attrName === "localizations" && localizations !== false) newPopulate[attrName] = true
 
       continue
     }
 
-    if (params.localizations !== true && attrName === "localizations" && hasValue(value)) {
+    if (localizations !== true && attrName === "localizations" && hasValue(value)) {
       newPopulate[attrName] = true
       continue
     }
 
+    // The attribute's own target is checked against the schema-level allow/deny only. The
+    // attribute's `pluginOptions` apply to the subtree of that attribute and are merged in below.
     if (contentTypes.isRelationalAttribute(attr)) {
       if (__allow?.relations && !__allow.relations.includes(attr.target as UID.ContentType)) {
         newPopulate[attrName] = true
@@ -313,14 +353,26 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
       }
     }
 
-    resolveRelations.push([attrName, attr, value])
+    const subtreeOptions = mergeAllowDeny({ allow: __allow, deny: __deny }, attributeOptions)
+
+    resolveRelations.push([attrName, attr, value, subtreeOptions])
+  }
+
+  // Store this schema's options and all attribute options so cache entries can be invalidated when
+  // either changes. Static config is covered by `__deepPopulateConfig`.
+  if (!isEmpty(pluginOptions) || !isEmpty(attributeConfig)) {
+    const schemaOptions: DeepPopulateSchemaConfig = {
+      ...(!isEmpty(pluginOptions) ? { options: pluginOptions } : {}),
+      ...(!isEmpty(attributeConfig) ? { attributes: attributeConfig } : {}),
+    }
+    schemaConfig[schema] = schemaOptions
   }
 
   relations = null
   document = null
 
   // Construct actual populate
-  for (const [attrName, attr, value] of resolveRelations) {
+  for (const [attrName, attr, value, subtreeOptions] of resolveRelations) {
     if (contentTypes.isDynamicZoneAttribute(attr)) {
       const relComponents = (value as Data.Component[]).map(
         (dataComponent) =>
@@ -334,9 +386,13 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         attrName,
         resolvedRelations,
         resolvedSchemas,
-        omitEmpty,
-        __deny,
-        __allow,
+        schemaConfig,
+        omitEmpty: omitEmptyFallback,
+        localizations: localizationsFallback,
+        omitEmptyOverride,
+        localizationsOverride,
+        __deny: subtreeOptions.deny,
+        __allow: subtreeOptions.allow,
         ...params,
       })
     }
@@ -347,12 +403,15 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         relation: value,
         resolvedRelations,
         resolvedSchemas,
-        omitEmpty,
+        schemaConfig,
+        omitEmpty: omitEmptyFallback,
+        localizations: localizationsFallback,
+        omitEmptyOverride,
+        localizationsOverride,
         locale: params.locale,
         status: params.status,
-        localizations: params.localizations,
-        __deny,
-        __allow,
+        __deny: subtreeOptions.deny,
+        __allow: subtreeOptions.allow,
       })
     }
 
@@ -364,9 +423,14 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
         attrName,
         resolvedRelations,
         resolvedSchemas,
-        omitEmpty,
-        __deny,
-        __allow,
+        schemaConfig,
+        omitEmpty: omitEmptyFallback,
+        localizations: localizationsFallback,
+        omitEmptyOverride,
+        localizationsOverride,
+        allowTargetCheck: false,
+        __deny: subtreeOptions.deny,
+        __allow: subtreeOptions.allow,
         ...params,
       })
     }
@@ -381,22 +445,28 @@ async function _populate<TContentType extends UID.ContentType, TSchema extends U
 
 export default async function populate(params: PopulateParams) {
   const config = getConfig(params)
+  const inherited = getInheritedConfig(params)
 
   const resolvedRelations = new Map()
   const resolvedSchemas = new Set<UID.Schema>()
+  const schemaConfig: Record<string, DeepPopulateSchemaConfig> = {}
 
   const populated = (await _populate({
+    ...params,
     schema: params.contentType,
     resolvedRelations,
     resolvedSchemas,
-    omitEmpty: config.omitEmpty,
-    localizations: config.localizations,
-    __deny: clone(config.deny),
-    __allow: clone(config.allow),
-    ...params,
+    schemaConfig,
+    omitEmpty: inherited.omitEmpty,
+    omitEmptyOverride: params.omitEmpty,
+    localizations: inherited.localizations,
+    localizationsOverride: params.localizations,
+    __deny: clone(inherited.deny),
+    __allow: clone(inherited.allow),
   })) as Record<string, unknown>
   populated.__deepPopulated = true
   populated.__deepPopulateConfig = config
+  if (!isEmpty(schemaConfig)) populated.__deepPopulateSchemaConfig = schemaConfig
 
   const dependencies = [
     ...[...resolvedRelations.keys()].filter((r) => !r.startsWith("api::")), // Remove content-types from resolved relations

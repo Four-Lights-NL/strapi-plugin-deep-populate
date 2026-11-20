@@ -1,8 +1,7 @@
 import type { Core, Modules, UID } from "@strapi/strapi"
 
-import type { Config } from "../config"
-
 import populate from "./deep-populate"
+import { getGlobalConfig } from "./deep-populate/utils"
 
 export type PopulateParams<TContentType extends UID.ContentType = UID.ContentType> = Modules.Documents.Params.Pick<
   TContentType,
@@ -15,9 +14,9 @@ export type PopulateParams<TContentType extends UID.ContentType = UID.ContentTyp
   localizations?: boolean
 }
 
-export default ({ strapi }: { strapi: Core.Strapi }) => ({
+export default (_: { strapi: Core.Strapi }) => ({
   async get(params: PopulateParams) {
-    const { useCache } = strapi.config.get("plugin::deep-populate") as Config
+    const { useCache } = getGlobalConfig()
     if (!useCache) return (await populate(params)).populate
 
     const cachedEntry = await strapi.service("plugin::deep-populate.cache").get(params)

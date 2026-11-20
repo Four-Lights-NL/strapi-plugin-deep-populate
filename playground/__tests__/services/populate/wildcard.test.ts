@@ -122,7 +122,12 @@ describe("wildcard populate (issue #156)", () => {
       type: "custom",
       lifespan: null,
       // Has access to pages and sections, but NOT to users, so `page.members` is stripped by core.
-      permissions: ["api::page.page.find", "api::page.page.findOne", "api::section.section.find", "api::section.section.findOne"],
+      permissions: [
+        "api::page.page.find",
+        "api::page.page.findOne",
+        "api::section.section.find",
+        "api::section.section.findOne",
+      ],
     })
 
     const response = await supertest(strapi.server.httpServer)
