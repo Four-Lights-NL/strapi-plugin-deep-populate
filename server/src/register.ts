@@ -8,12 +8,9 @@ import isEqual from "lodash/isEqual"
 import isObject from "lodash/isObject"
 import unset from "lodash/unset"
 
-import {
-  addDeepPopulateCacheFullTextIndex,
-  hasDeepPopulateCacheFullTextIndex,
-  removeDeepPopulateCacheFullTextIndex,
-} from "./migrations"
+import { getGlobalConfig } from "./services/deep-populate/utils"
 import { asBoolean } from "./utils/asBoolean"
+import { syncCacheIndex } from "./utils/cacheIndex"
 import log from "./utils/log"
 
 /**
@@ -113,23 +110,11 @@ export default async ({ strapi }) => {
     }
   })
   strapi.hook("strapi::content-types.afterSync").register(async () => {
-    const tableName = strapi.db.metadata.get("plugin::deep-populate.cache").tableName
-    const columnName = "dependencies"
-
-    const hasIndex = await hasDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
-    const hasTable = await strapi.db.connection.schema.hasTable(tableName)
-    const hasColumn = hasTable && (await strapi.db.connection.schema.hasColumn(tableName, columnName))
-    const cacheIsEnabled = strapi.config.get("plugin::deep-populate").useCache === true
-
-    const shouldCreateIndex = cacheIsEnabled && hasTable && hasColumn && !hasIndex
-    const shouldRemoveIndex = hasIndex && (!cacheIsEnabled || !hasTable || !hasColumn)
-
-    if (shouldCreateIndex) await addDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
-    if (shouldRemoveIndex) await removeDeepPopulateCacheFullTextIndex(strapi.db, tableName, columnName)
+    await syncCacheIndex(strapi)
   })
 
   strapi.documents.use(async (context, next) => {
-    const { useCache, replaceWildcard, cacheOptions } = strapi.config.get("plugin::deep-populate")
+    const { useCache, replaceWildcard, cacheOptions } = getGlobalConfig()
     const warmOnWrite = cacheOptions?.warmOnWrite === true
 
     if (
@@ -150,6 +135,7 @@ export default async ({ strapi }) => {
     if (has(populate, "__deepPopulated")) {
       unset(populate, "__deepPopulated")
       unset(populate, "__deepPopulateConfig")
+      unset(populate, "__deepPopulateSchemaConfig")
     }
 
     if (useCache && context.action === "delete")
