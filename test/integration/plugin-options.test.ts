@@ -1,5 +1,5 @@
 import { asBlock, connect, createPage, createSection, type Handle, link } from "@test/factories"
-import { setSettings, setupStrapi, strapi, withAttributeOptions, withSchemaOptions } from "@test/harness"
+import { getGlobal, setSettings, setupStrapi, strapi, withAttributeOptions, withSchemaOptions } from "@test/harness"
 import { beforeAll, beforeEach, describe, expect, test } from "vitest"
 
 const populateService = () =>
@@ -62,13 +62,13 @@ describe("plugin options", () => {
 
   describe("global settings", () => {
     test("default to the built-in values and can be overridden by the store", async () => {
-      const defaults = asRecord(strapi.plugin("deep-populate").service("settings").getGlobal())
+      const defaults = getGlobal()
       expect(defaults).toMatchObject({ useCache: true, replaceWildcard: true })
       expect(defaults.omitEmpty).toBeUndefined()
       expect(defaults.localizations).toBeUndefined()
 
       await setSettings({ omitEmpty: true, localizations: true, replaceWildcard: false })
-      expect(asRecord(strapi.plugin("deep-populate").service("settings").getGlobal())).toMatchObject({
+      expect(getGlobal()).toMatchObject({
         omitEmpty: true,
         localizations: true,
         replaceWildcard: false,

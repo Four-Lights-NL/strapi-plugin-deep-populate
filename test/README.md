@@ -277,3 +277,8 @@ Known defects are characterised rather than fixed:
   `Object.keys(UniqueConstraintErrorCodes)` (the constant names) instead of
   `Object.values(...)`. There is an `it.todo` for it in
   `test/unit/isUniqueConstraintError.test.ts`.
+- `majorMinorVersion` (the populate cache namespace) strips only the package
+  version's last dot-segment, so a prerelease such as `1.17.2-beta.0` yields
+  `1.17.2-beta` rather than `1.17`. #160 is test-only and the runtime is owned by
+  the stack, so the util is characterised rather than changed;
+  `test/unit/version.test.ts` asserts the actual contract.
