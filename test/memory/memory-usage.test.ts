@@ -1,61 +1,37 @@
-import { afterAll, beforeAll, describe, it } from "vitest"
-
-import type { UnwrapPromise } from "./helpers/unwrapPromise"
-
-import * as MemoryTracker from "./helpers/memoryTracker"
-import { setupDocuments } from "./helpers/setupDocuments"
-import { setupStrapi, strapi, teardownStrapi } from "./helpers/strapi"
+import { type StandardGraph, seedStandardGraph } from "@test/factories"
+import { setPluginConfig, setupStrapi, strapi, trackFunction } from "@test/harness"
+import { beforeAll, describe, expect, it } from "vitest"
 
 describe.sequential("Memory Usage Tests", () => {
-  let context: UnwrapPromise<ReturnType<typeof setupDocuments>>
-  let originalConfigGet: typeof strapi.config.get
-  let configSpy: ReturnType<typeof vitest.spyOn>
-  let useCache = true
+  let context: StandardGraph
 
   beforeAll(async () => {
     await setupStrapi()
 
-    originalConfigGet = strapi.config.get
-    configSpy = vitest.spyOn(strapi.config, "get")
-    configSpy.mockImplementation((key) => {
-      const config = originalConfigGet.call(strapi.config, key)
-      if (key === "plugin::deep-populate") {
-        config.useCache = useCache
-        return config as object
-      }
-      return config
-    })
-
     // Create a very nested lookup
-    let previousPageId: string
+    let previousPageId: string | undefined
     for (let idx = 0; idx < 5; idx += 1) {
-      const layerContext = await setupDocuments(previousPageId)
+      const layerContext = await seedStandardGraph(previousPageId)
       previousPageId = layerContext.page.documentId
     }
-    console.log("Done setting up layers")
-    context = await setupDocuments(previousPageId)
-  })
-
-  afterAll(async () => {
-    await teardownStrapi()
+    context = await seedStandardGraph(previousPageId)
   })
 
   it("should not use more than 15MiB memory when using cache", async () => {
-    const results = await MemoryTracker.trackFunction(
+    setPluginConfig({ useCache: true })
+
+    const results = await trackFunction(
       async () =>
         await strapi.documents("api::page.page").findOne({ documentId: context.page.documentId, populate: "*" }),
       { iterations: 100, forceGC: true },
     )
-
-    // To see the actual memory stats, use:
-    console.log("Cache-full memory stats", results.stats)
 
     expect(results.stats.maxHeapUsed).toBeLessThan(40 * 1024 * 1024 /* 40 MiB */)
     expect(results.stats.avgHeapUsed).toBeLessThan(15 * 1024 * 1024 /* 15 MiB */)
   })
 
   it("should not use more than 80MiB memory without using cache", async () => {
-    useCache = false // disable cache
+    setPluginConfig({ useCache: false })
 
     // remove existing cache
     {
@@ -69,14 +45,11 @@ describe.sequential("Memory Usage Tests", () => {
       }
     }
 
-    const results = await MemoryTracker.trackFunction(
+    const results = await trackFunction(
       async () =>
         await strapi.documents("api::page.page").findOne({ documentId: context.page.documentId, populate: "*" }),
       { iterations: 100, forceGC: true },
     )
-
-    // To see the actual memory stats, use:
-    console.log("Cache-less memory stats", results.stats)
 
     expect(results.stats.maxHeapUsed).toBeLessThan(80 * 1024 * 1024 /* 80 MiB */)
     expect(results.stats.avgHeapUsed).toBeLessThan(80 * 1024 * 1024 /* 80 MiB */)

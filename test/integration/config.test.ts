@@ -1,125 +1,61 @@
-import type { Core, Data, Modules, UID } from "@strapi/strapi"
+import { createPage, pageWithLink, type StandardGraph, seedStandardGraph } from "@test/factories"
+import { setPluginConfig, setupStrapi, strapi } from "@test/harness"
+import { beforeAll, describe, expect, test } from "vitest"
 
-import type { UnwrapPromise } from "../../helpers/unwrapPromise"
-
-import { setupDocuments } from "../../helpers/setupDocuments"
-import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
+type ConfigContext = StandardGraph & Awaited<ReturnType<typeof pageWithLink>>
 
 describe("config", () => {
-  let context: UnwrapPromise<ReturnType<typeof setupDocuments>> & {
-    sectionWithLink: Data.Entity
-    pageWithLink: Data.Entity
-    shallowPopulatedTargetPage: Data.Entity
-  }
+  let context: ConfigContext
   const contentType = "api::page.page"
-
-  let originalConfigGet: typeof strapi.config.get
-  let configSpy: ReturnType<typeof vitest.spyOn>
-
-  const configContentTypes: Record<UID.ContentType, any> = {}
-  let omitEmpty: boolean | undefined
-  let localizations: boolean | undefined
+  let service: { get: (params: Record<string, unknown>) => Promise<Record<string, unknown>> }
 
   beforeAll(async () => {
     await setupStrapi()
-
-    originalConfigGet = strapi.config.get
-    configSpy = vitest.spyOn(strapi.config, "get")
-    configSpy.mockImplementation((key, defaultValue) => {
-      if (key === "plugin::deep-populate") {
-        const config = originalConfigGet.call(strapi.config, key, defaultValue)
-        return {
-          ...(config as object),
-          useCache: false,
-          localizations,
-          omitEmpty,
-          contentTypes: configContentTypes,
-        }
-      }
-      return originalConfigGet.call(strapi.config, key, defaultValue)
-    })
-
-    context = (await setupDocuments()) as unknown as typeof context
-
-    context.sectionWithLink = await strapi.documents("api::section.section").create({
-      data: {
-        blocks: [
-          {
-            __component: "shared.link",
-            label: "to main page",
-            page: context.page.documentId,
-          },
-        ],
-      },
-      populate: ["localizations", "target", "singleCoolComponent", "sections", "coolitems", "blocks"],
-    })
-
-    context.pageWithLink = await strapi.documents(contentType).create({
-      data: {
-        title: "page with link",
-        sections: [context.sectionWithLink.documentId],
-      },
-      populate: ["image", "localizations", "members"],
-    })
-
-    context.shallowPopulatedTargetPage = await strapi
-      .documents(contentType)
-      .findOne({ documentId: context.page.documentId })
-  })
-
-  afterAll(async () => {
-    await teardownStrapi()
-  })
-
-  beforeEach(async () => {
-    configSpy.mockClear()
+    const graph = await seedStandardGraph()
+    const link = await pageWithLink(graph.page)
+    context = { ...graph, ...link } as ConfigContext
+    service = strapi.plugin("deep-populate").service("populate") as unknown as typeof service
   })
 
   describe("deny", () => {
+    const expectedBlocks = () => [
+      { ...(context.sectionWithLink.doc.blocks as Record<string, unknown>[])[0], page: context.shallowTargetPage.doc },
+    ]
+
     it("should not deeply populate denied relations", async () => {
-      configContentTypes[contentType] = {
-        deny: { relations: [contentType] },
-      }
+      setPluginConfig({
+        useCache: false,
+        contentTypes: { [contentType]: { deny: { relations: [contentType] } } },
+      })
 
       const document = await strapi
         .documents(contentType)
         .findOne({ documentId: context.pageWithLink.documentId, populate: "*" })
 
       expect(document).toEqual({
-        ...context.pageWithLink,
-        sections: [
-          {
-            ...context.sectionWithLink,
-            blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
-          },
-        ],
+        ...context.pageWithLink.doc,
+        sections: [{ ...context.sectionWithLink.doc, blocks: expectedBlocks() }],
       })
     })
 
     it("should not populate denied components", async () => {
-      configContentTypes[contentType] = {
-        deny: { components: ["shared.link"] },
-      }
+      setPluginConfig({
+        useCache: false,
+        contentTypes: { [contentType]: { deny: { components: ["shared.link"] } } },
+      })
 
       const document = await strapi
         .documents(contentType)
         .findOne({ documentId: context.pageWithLink.documentId, populate: "*" })
 
       expect(document).toEqual({
-        ...context.pageWithLink,
-        sections: [
-          {
-            ...context.sectionWithLink,
-            blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
-          },
-        ],
+        ...context.pageWithLink.doc,
+        sections: [{ ...context.sectionWithLink.doc, blocks: expectedBlocks() }],
       })
     })
 
     it("should not populate denied contenttypes from wildcard configuration", async () => {
-      configContentTypes["*"] = {
-        deny: { components: ["shared.link"] },
-      }
+      setPluginConfig({ useCache: false, contentTypes: { "*": { deny: { components: ["shared.link"] } } } })
 
       const document = await strapi
         .documents(contentType)
@@ -130,40 +66,26 @@ describe("config", () => {
         .findOne({ documentId: context.sectionWithLink.documentId, populate: "*" })
 
       expect(document).toEqual({
-        ...context.pageWithLink,
-        sections: [
-          {
-            ...context.sectionWithLink,
-            blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
-          },
-        ],
+        ...context.pageWithLink.doc,
+        sections: [{ ...context.sectionWithLink.doc, blocks: expectedBlocks() }],
       })
 
       expect(section).toEqual({
-        ...context.sectionWithLink,
-        blocks: [{ ...context.sectionWithLink.blocks[0], page: context.shallowPopulatedTargetPage }],
+        ...context.sectionWithLink.doc,
+        blocks: expectedBlocks(),
       })
     })
   })
 
-  describe("omitEmpty", async () => {
-    let service: Core.Service
-    const sections: Modules.Documents.AnyDocument[] = []
+  describe("omitEmpty", () => {
+    const sections: Record<string, unknown>[] = []
 
     beforeAll(async () => {
-      sections.push(await strapi.documents(contentType).create({ data: { name: "relations-one" } }))
-      service = strapi.plugin("deep-populate").service("populate")
-    })
-
-    beforeEach(() => {
-      localizations = undefined
-      omitEmpty = undefined
-
-      Object.keys(configContentTypes).map((k) => delete configContentTypes[k])
+      sections.push((await createPage({ title: "relations-one" })).doc)
     })
 
     test("should not omitEmpty attributes when false", async () => {
-      omitEmpty = false
+      setPluginConfig({ useCache: false, omitEmpty: false })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
@@ -185,7 +107,7 @@ describe("config", () => {
     })
 
     test("should omitEmpty attributes when true", async () => {
-      omitEmpty = true
+      setPluginConfig({ useCache: false, omitEmpty: true })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
@@ -203,7 +125,7 @@ describe("config", () => {
     })
 
     test("should be overridden by function params", async () => {
-      omitEmpty = false
+      setPluginConfig({ useCache: false, omitEmpty: false })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId, omitEmpty: true })
       expect(populate).toStrictEqual({
@@ -221,8 +143,7 @@ describe("config", () => {
     })
 
     test("should be overridden by content type omitEmpty", async () => {
-      omitEmpty = false
-      configContentTypes[contentType] = { omitEmpty: true }
+      setPluginConfig({ useCache: false, omitEmpty: false, contentTypes: { [contentType]: { omitEmpty: true } } })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
@@ -240,24 +161,15 @@ describe("config", () => {
     })
   })
 
-  describe("localizations", async () => {
-    let service: Core.Service
-    const sections: Modules.Documents.AnyDocument[] = []
+  describe("localizations", () => {
+    let sections: Record<string, unknown>[]
 
     beforeAll(async () => {
-      sections.push(await strapi.documents(contentType).create({ data: { name: "relations-one" } }))
-      service = strapi.plugin("deep-populate").service("populate")
-    })
-
-    beforeEach(() => {
-      localizations = undefined
-      omitEmpty = undefined
-
-      Object.keys(configContentTypes).map((k) => delete configContentTypes[k])
+      sections = [(await createPage({ title: "localizations" })).doc]
     })
 
     test("should exclude localizations when false", async () => {
-      localizations = false
+      setPluginConfig({ useCache: false, localizations: false })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
@@ -278,7 +190,7 @@ describe("config", () => {
     })
 
     test("should include localizations when true", async () => {
-      localizations = true
+      setPluginConfig({ useCache: false, localizations: true })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
@@ -300,7 +212,7 @@ describe("config", () => {
     })
 
     test("should be overridden by function param", async () => {
-      localizations = false
+      setPluginConfig({ useCache: false, localizations: false })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId, localizations: true })
       expect(populate).toStrictEqual({
@@ -322,8 +234,11 @@ describe("config", () => {
     })
 
     test("should be overridden by content type localizations configuration", async () => {
-      localizations = false
-      configContentTypes[contentType] = { localizations: true }
+      setPluginConfig({
+        useCache: false,
+        localizations: false,
+        contentTypes: { [contentType]: { localizations: true } },
+      })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({
@@ -345,8 +260,7 @@ describe("config", () => {
     })
 
     test("should include localizations when true, regardless of omitEmpty", async () => {
-      localizations = true
-      omitEmpty = true
+      setPluginConfig({ useCache: false, localizations: true, omitEmpty: true })
 
       const populate = await service.get({ contentType, documentId: sections[0].documentId })
       expect(populate).toStrictEqual({

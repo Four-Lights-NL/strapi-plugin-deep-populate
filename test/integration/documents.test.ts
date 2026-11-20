@@ -1,21 +1,15 @@
+import { type StandardGraph, seedStandardGraph } from "@test/factories"
+import { setupStrapi, strapi } from "@test/harness"
 import get from "lodash/get"
-
-import type { UnwrapPromise } from "../../helpers/unwrapPromise"
-
-import { setupDocuments } from "../../helpers/setupDocuments"
-import { setupStrapi, strapi, teardownStrapi } from "../../helpers/strapi"
+import { beforeAll, describe, expect, test } from "vitest"
 
 describe("documents", () => {
-  let context: UnwrapPromise<ReturnType<typeof setupDocuments>>
   const contentType = "api::page.page"
+  let context: StandardGraph
 
   beforeAll(async () => {
     await setupStrapi()
-    context = await setupDocuments()
-  })
-
-  afterAll(async () => {
-    await teardownStrapi()
+    context = await seedStandardGraph()
   })
 
   describe("findOne", () => {
@@ -25,13 +19,13 @@ describe("documents", () => {
         .findOne({ documentId: context.page.documentId, populate: "*" })
 
       const expected: Record<string, object> = {}
-      expected.nestedSection = context.nestedSection
+      expected.nestedSection = context.nestedSection.doc
       expected.primarySection = {
-        ...context.primarySection,
+        ...context.primarySection.doc,
         sections: [expected.nestedSection],
       }
       expected.page = {
-        ...context.page,
+        ...context.page.doc,
         sections: [expected.primarySection],
       }
 
