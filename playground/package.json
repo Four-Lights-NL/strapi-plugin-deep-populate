@@ -32,6 +32,9 @@
   "overrides": {
     "vite": "$vite",
     "@strapi/strapi": "$@strapi/strapi",
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "@strapi/admin": "5.53.0",
+    "@strapi/design-system": "2.2.4",
+    "@strapi/icons": "2.2.4"
   }
 }
