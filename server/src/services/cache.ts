@@ -1,16 +1,22 @@
-import type { Core, Modules } from "@strapi/strapi"
+import type { Core, Modules, UID } from "@strapi/strapi"
 
 import get from "lodash/get"
 import isEmpty from "lodash/isEmpty"
 import isEqual from "lodash/isEqual"
 
-import type { Config } from "../config"
+import type { DeepPopulateAttributePluginOptions, DeepPopulateSchemaConfig } from "../config"
 import type { PopulateParams } from "./populate"
 
 import { isUniqueConstraintError } from "../utils/isUniqueConstraintError"
 import log from "../utils/log"
 import { majorMinorVersion } from "../utils/version"
-import { getConfig } from "./deep-populate/utils"
+import {
+  getAttributePluginOptions,
+  getConfig,
+  getGlobalConfig,
+  getRelations,
+  getSchemaPluginOptions,
+} from "./deep-populate/utils"
 
 type SetPopulateParams = PopulateParams &
   Modules.Documents.Params.Pick<PopulateParams["contentType"], "populate"> & { dependencies: string[] }
@@ -25,11 +31,47 @@ const getHash = (params: PopulateParams) => {
   return `${majorMinorVersion}-${params.contentType}-${params.documentId}-${params.locale}-${params.status}`
 }
 
+/**
+ * Recompute the schema- and attribute-level `pluginOptions` for the schemas the cached entry depends on.
+ * Plugin-option-only schema edits do not change database tables, so the regular schema diff
+ * cannot invalidate these cache entries.
+ */
+const getSchemaConfig = (dependencies: unknown): Record<string, DeepPopulateSchemaConfig> => {
+  const config: Record<string, DeepPopulateSchemaConfig> = {}
+  const uids = typeof dependencies === "string" ? dependencies.split(",") : []
+
+  for (const uid of uids) {
+    if (!uid) continue
+    const model = strapi.getModel(uid as UID.Schema)
+    if (!model) continue
+
+    const options = getSchemaPluginOptions(model)
+    const attributes: Record<string, DeepPopulateAttributePluginOptions> = {}
+    for (const [attrName, attr] of getRelations(model)) {
+      const attributeOptions = getAttributePluginOptions(attr)
+      if (!isEmpty(attributeOptions)) attributes[attrName] = attributeOptions
+    }
+
+    if (!isEmpty(options) || !isEmpty(attributes)) {
+      config[uid] = {
+        ...(!isEmpty(options) ? { options } : {}),
+        ...(!isEmpty(attributes) ? { attributes } : {}),
+      }
+    }
+  }
+
+  return config
+}
+
 const isValid = (entry: Modules.Documents.AnyDocument, params: PopulateParams) => {
   if (entry && !isEmpty(entry.populate) && get(entry.populate, "__deepPopulated", false)) {
     const cachedConfig = entry.populate.__deepPopulateConfig
     const currentConfig = getConfig(params)
-    return isEqualConfig(cachedConfig, currentConfig)
+    if (!isEqualConfig(cachedConfig, currentConfig)) return false
+
+    const cachedSchemaConfig = entry.populate.__deepPopulateSchemaConfig ?? {}
+    const currentSchemaConfig = getSchemaConfig(entry.dependencies)
+    return isEqualConfig(cachedSchemaConfig, currentSchemaConfig)
   }
   return false
 }
@@ -69,6 +111,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       log.error("Failed to save cached entry", error)
     }
   },
+  async clearAll() {
+    return strapi.db.query("plugin::deep-populate.cache").deleteMany({
+      where: {
+        id: { $gt: 0 },
+      },
+    })
+  },
   async clear(params: PopulateParams) {
     const entry = await strapi
       .documents("plugin::deep-populate.cache")
@@ -103,7 +152,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
     if (deleted.count !== entries.length)
       console.error(`Deleted count ${deleted.count} does not match entries count ${entries.length}`)
 
-    const { cacheOptions } = strapi.config.get("plugin::deep-populate") as Config
+    const { cacheOptions } = getGlobalConfig()
     if (cacheOptions?.warmOnWrite !== true) return
 
     const batchSize = 5
