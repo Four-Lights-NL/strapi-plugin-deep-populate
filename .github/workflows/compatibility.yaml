@@ -70,7 +70,9 @@ jobs:
       # The harness boots the app with the Strapi copy in playground/node_modules,
       # so the playground must be pinned too - not just the root devDependencies.
       # `@strapi/admin` is pinned in the root devDependencies (the admin bundle
-      # needs it), so it is injected as well to keep the root install consistent.
+      # needs it) and in the playground `overrides` (the runtime dedupe); both are
+      # injected so no hardcoded version is left mismatched with the pinned
+      # `@strapi/strapi` on a leg.
       # CI-only: nothing is committed back.
       - name: Inject Strapi version
         shell: bash
@@ -87,7 +89,8 @@ jobs:
             cd playground
             npm pkg set \
               "dependencies.@strapi/strapi=$STRAPI" \
-              "dependencies.@strapi/plugin-users-permissions=$STRAPI"
+              "dependencies.@strapi/plugin-users-permissions=$STRAPI" \
+              "overrides.@strapi/admin=$STRAPI"
           )
 
       - name: Install (root)
