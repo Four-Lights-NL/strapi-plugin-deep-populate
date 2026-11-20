@@ -25,6 +25,13 @@ jobs:
           # and in the peerDependency, then update this matrix.
           - node: 20
             strapi: '5.31.0'
+          # Boundary legs for the wildcard fix (#156): 5.52.3 is the last release
+          # before the content API passed the request auth into populate
+          # sanitization, 5.61.0 is the version from the report.
+          - node: 20
+            strapi: '5.52.3'
+          - node: 20
+            strapi: '5.61.0'
           - node: 20
             strapi: 'latest'
           - node: 22
@@ -62,6 +69,8 @@ jobs:
 
       # The harness boots the app with the Strapi copy in playground/node_modules,
       # so the playground must be pinned too - not just the root devDependencies.
+      # `@strapi/admin` is pinned in the root devDependencies (the admin bundle
+      # needs it), so it is injected as well to keep the root install consistent.
       # CI-only: nothing is committed back.
       - name: Inject Strapi version
         shell: bash
@@ -72,7 +81,8 @@ jobs:
             "devDependencies.@strapi/strapi=$STRAPI" \
             "devDependencies.@strapi/utils=$STRAPI" \
             "devDependencies.@strapi/database=$STRAPI" \
-            "devDependencies.@strapi/typescript-utils=$STRAPI"
+            "devDependencies.@strapi/typescript-utils=$STRAPI" \
+            "devDependencies.@strapi/admin=$STRAPI"
           (
             cd playground
             npm pkg set \
