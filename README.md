@@ -13,6 +13,8 @@ It does not impose a limit on the level of nesting and can cache the populate ob
 - Includes caching for improved performance
 - Honors `populateCreatorFields` setting
 - Supports optional allow/deny lists for specific relations or components during population
+- Configurable globally from the admin settings page, per content type/component/attribute through `pluginOptions`, and from `config/plugins.js`
+- Provides a `selfReferencing` escape hatch for deeply self-referential schemas
 
 ## Installation
 
@@ -64,6 +66,20 @@ const document = await strapi.documents('api::page.page').findOne({
   populate
 });
 ```
+
+### Admin Settings
+
+Open **Settings → Deep Populate** in the admin panel to configure the global defaults
+without redeploying. Values saved there take precedence over `config/plugins.js`:
+
+- **Use cache** – persist resolved populate objects in the database
+- **Replace wildcard populate** – turn `populate: '*'` into a deep populate
+- **Omit empty relations** – leave relations without a value out of the populate object
+- **Include localizations** – populate `localizations` for i18n-enabled content types
+- **Clear cache on startup** / **Warm cache on write** – cache maintenance options
+
+The settings page is protected by the `plugin::deep-populate.settings.access`
+permission, which can be assigned to roles like any other Strapi permission.
 
 ### omitEmpty and localizations
 
@@ -134,12 +150,71 @@ const populate = await strapi.plugin("deep-populate")
   });
 ```
 
+#### Schema options (`pluginOptions`)
+
+Instead of (or in addition to) `config/plugins.js`, you can configure a content
+type or component from its schema. The options are resolved for every schema at
+every level of the traversal:
+
+```json
+{
+  "pluginOptions": {
+    "deep-populate": {
+      "omitEmpty": true,
+      "localizations": true,
+      "selfReferencing": true,
+      "allow": { "relations": ["api::page.page"] },
+      "deny": { "components": ["shared.link"] }
+    }
+  }
+}
+```
+
+Content types support `omitEmpty`, `localizations`, `selfReferencing`, `allow`
+and `deny`. Components support `selfReferencing`, `allow` and `deny`.
+
+On a relation, component or dynamic zone attribute, `allow` and `deny` are
+scoped to that attribute's subtree. The attribute's own target is always
+included; the options only decide how deep the plugin keeps traversing below it:
+
+```json
+{
+  "page": {
+    "type": "relation",
+    "relation": "oneToOne",
+    "target": "api::page.page",
+    "pluginOptions": {
+      "deep-populate": {
+        "deny": { "relations": ["api::page.page"] }
+      }
+    }
+  }
+}
+```
+
+`selfReferencing` controls how the circular-reference breaker treats the
+schema:
+
+- unset – keep the default breaker
+- `true` – keep traversing self-referential relations, including indirect
+  self-references through components and dynamic zones (documentId cycle
+  detection remains the backstop)
+- `false` – stop self-referential relations after one level
+
 #### Override Priority
 
-Settings are applied in the following priority order (highest to lowest):
+`omitEmpty` and `localizations` are applied in the following priority order
+(highest to lowest):
 1. **Function parameters** - Passed directly to the `get()` method
-2. **Content-type configuration** - Specific to the content type
-3. **Global configuration** - Default plugin settings
+2. **Schema `pluginOptions`** - The content type/component schema at the current level
+3. **Content-type configuration** - `config/plugins.js` (`contentTypes[uid]`)
+4. **Wildcard configuration** - `config/plugins.js` (`contentTypes['*']`)
+5. **Admin settings** - Settings saved in the admin panel
+6. **Plugin configuration** - `config/plugins.js` global values
+7. **Built-in defaults** - `useCache: true`, `replaceWildcard: true`
+
+For `allow` and `deny`, the highest-priority source that defines them wins at
+each level, and an attribute's own lists are applied on top for its subtree.
 
 #### Special Behavior
 
@@ -204,6 +279,11 @@ module.exports = ({ env }) => ({
   }
 });
 ```
+
+The same `allow`/`deny` lists can be set on individual relation, component and
+dynamic zone attributes through their `pluginOptions`, where they only affect
+that attribute's subtree. A wildcard (`'*'`) entry is inherited as the base for
+all content types. See [Schema options](#schema-options-pluginoptions) above.
 ---
 
 ## How The Plugin Works
